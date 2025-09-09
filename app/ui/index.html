@@ -45,17 +45,26 @@
           <div>
             <label id="lblAbz" class="block text-sm font-medium text-slate-700 mb-1">ABZ - Charge Rate.xlsx</label>
             <input id="fileAbz" type="file" accept=".xlsx,.xls" class="hidden" />
-            <button id="btnPickAbz" type="button" class="inline-flex items-center gap-2 bg-slate-600 hover:bg-slate-700 text-white font-medium px-3 py-2 rounded">Selecionar arquivo</button>
+            <button id="btnPickAbz" type="button" class="inline-flex items-center gap-2 bg-primary hover:opacity-90 text-white font-medium px-3 py-2 rounded">
+              <span class="material-symbols-outlined text-base">upload_file</span>
+              <span id="btnPickAbzText">Selecionar arquivo</span>
+            </button>
             <span id="fileAbzName" class="ml-2 text-sm text-slate-600">Nenhum arquivo</span>
           </div>
           <div>
             <label id="lblAnfin" class="block text-sm font-medium text-slate-700 mb-1">AN-FIN - Medição.xlsx</label>
             <input id="fileAnfin" type="file" accept=".xlsx,.xls" class="hidden" />
-            <button id="btnPickAnfin" type="button" class="inline-flex items-center gap-2 bg-slate-600 hover:bg-slate-700 text-white font-medium px-3 py-2 rounded">Selecionar arquivo</button>
+            <button id="btnPickAnfin" type="button" class="inline-flex items-center gap-2 bg-primary hover:opacity-90 text-white font-medium px-3 py-2 rounded">
+              <span class="material-symbols-outlined text-base">upload_file</span>
+              <span id="btnPickAnfinText">Selecionar arquivo</span>
+            </button>
             <span id="fileAnfinName" class="ml-2 text-sm text-slate-600">Nenhum arquivo</span>
           </div>
           <div class="flex gap-3">
-            <button id="btnImport" class="mt-6 inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded">Importar</button>
+            <button id="btnImport" class="mt-6 inline-flex items-center gap-2 bg-primary hover:opacity-90 text-white font-medium px-4 py-2 rounded">
+              <span class="material-symbols-outlined text-base">file_upload</span>
+              <span id="btnImportText">Importar</span>
+            </button>
             <div class="mt-6 text-sm"><span id="lblSession">Sessão:</span> <span id="sessionId" class="font-mono text-blue-700">–</span></div>
           </div>
         </div>
@@ -65,7 +74,10 @@
       <section class="bg-white rounded-lg shadow p-4">
         <div class="flex items-center justify-between mb-3">
           <h2 id="hPreview" class="text-lg font-semibold">2) Preview e Ajustes</h2>
-          <button id="btnPreview" class="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-800 text-white font-medium px-3 py-2 rounded">Carregar Preview</button>
+          <button id="btnPreview" class="inline-flex items-center gap-2 bg-primary hover:opacity-90 text-white font-medium px-3 py-2 rounded">
+            <span class="material-symbols-outlined text-base">table_view</span>
+            <span id="btnPreviewText">Carregar Preview</span>
+          </button>
         </div>
         <div class="overflow-x-auto">
           <table class="min-w-full text-sm" id="tbl">
@@ -104,12 +116,21 @@
             <input id="callOff" type="text" class="block w-full border rounded px-3 py-2" />
           </div>
           <div class="flex items-end">
-            <button id="btnGenerate" class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded">Gerar Invoices</button>
+            <button id="btnGenerate" class="inline-flex items-center gap-2 bg-primary hover:opacity-90 text-white font-medium px-4 py-2 rounded">
+              <span class="material-symbols-outlined text-base">receipt_long</span>
+              <span id="btnGenerateText">Gerar Invoices</span>
+            </button>
           </div>
         </div>
-        <div class="mt-4 flex gap-3 items-center">
-          <a id="lnkZipPdf" href="#" class="text-blue-700 underline hidden" download>Baixar ZIP (PDF)</a>
-          <a id="lnkZipAll" href="#" class="text-blue-700 underline hidden" download>Baixar ZIP (Tudo)</a>
+        <div class="mt-4 flex gap-4 items-center">
+          <a id="lnkZipPdf" href="#" class="inline-flex items-center gap-2 text-blue-700 underline hidden" download>
+            <span class="material-symbols-outlined text-base">archive</span>
+            <span id="lnkZipPdfText">Baixar ZIP (PDF)</span>
+          </a>
+          <a id="lnkZipAll" href="#" class="inline-flex items-center gap-2 text-blue-700 underline hidden" download>
+            <span class="material-symbols-outlined text-base">inventory_2</span>
+            <span id="lnkZipAllText">Baixar ZIP (Tudo)</span>
+          </a>
         </div>
         <div id="progress" class="mt-3 text-sm text-slate-600 whitespace-pre-line hidden"></div>
         <div id="result" class="mt-4 space-y-2"></div>

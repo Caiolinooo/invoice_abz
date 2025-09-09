@@ -43,19 +43,19 @@ function applyI18n(){
   const set = (id,k)=>{ const el=$(id); if(el) el.textContent=t(k); };
   set('#appTitle','title'); set('#status','ready');
   set('#hImport','hImport'); set('#lblAbz','lblAbz'); set('#lblAnfin','lblAnfin'); set('#lblSession','lblSession');
-  const bi=$('#btnImport'); if(bi) bi.textContent=t('btnImport');
+  const bi=$('#btnImportText'); if(bi) bi.textContent=t('btnImport');
   // file pick buttons + filenames
-  const bpa=$('#btnPickAbz'); if(bpa) bpa.textContent=t('btnPick');
-  const bpf=$('#btnPickAnfin'); if(bpf) bpf.textContent=t('btnPick');
+  const bpa=$('#btnPickAbzText'); if(bpa) bpa.textContent=t('btnPick');
+  const bpf=$('#btnPickAnfinText'); if(bpf) bpf.textContent=t('btnPick');
   const fn1=$('#fileAbzName'); if(fn1) fn1.textContent=fn1.dataset.fn || t('noFile');
   const fn2=$('#fileAnfinName'); if(fn2) fn2.textContent=fn2.dataset.fn || t('noFile');
 
-  set('#hPreview','hPreview'); const bp=$('#btnPreview'); if(bp) bp.textContent=t('btnPreview');
+  set('#hPreview','hPreview'); const bp=$('#btnPreviewText'); if(bp) bp.textContent=t('btnPreview');
   set('#thColab','thColab'); set('#thServiceDesc','thServiceDesc'); set('#thUnitPrice','thUnitPrice'); set('#thQty','thQty'); set('#thTotalServ','thTotalServ'); set('#thAdditional','thAdditional'); set('#thExpenses','thExpenses'); set('#thOverrideQty','thOverrideQty'); set('#thOverrideUnit','thOverrideUnit');
   set('#hGenerate','hGenerate'); set('#lblInvoiceDate','lblInvoiceDate'); set('#lblInvoiceNo','lblInvoiceNo'); set('#lblCallOff','lblCallOff');
-  const bg=$('#btnGenerate'); if(bg) bg.textContent=t('btnGenerate');
-  const l1=$('#lnkZipPdf'); if(l1){ l1.textContent=t('zipPdf'); }
-  const l2=$('#lnkZipAll'); if(l2){ l2.textContent=t('zipAll'); }
+  const bg=$('#btnGenerateText'); if(bg) bg.textContent=t('btnGenerate');
+  const l1=$('#lnkZipPdfText'); if(l1){ l1.textContent=t('zipPdf'); }
+  const l2=$('#lnkZipAllText'); if(l2){ l2.textContent=t('zipAll'); }
   const sel=$('#langSel'); if(sel){ sel.value=getLang(); }
   const idate=$('#invoiceDate'); if(idate){ idate.placeholder=t('datePlaceholder'); }
   // footer
