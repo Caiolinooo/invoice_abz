@@ -17,7 +17,8 @@ const I18N = {
     loadingPreview: 'Carregando preview...', previewReady: 'Preview pronto. Faça ajustes se necessário.',
     needImportFirst: 'Importe os arquivos primeiro', needPreviewFirst: 'Importe e faça o preview primeiro',
     generating: 'Gerando invoices...', generatedOk: 'Invoices geradas.', generatedWithWarnings: 'Gerado com avisos',
-    pdfPending: 'PDF pendente', warningsLabel: 'Avisos:'
+    pdfPending: 'PDF pendente', warningsLabel: 'Avisos:',
+    footerCopy: '© {year} ABZ Group. Todos os direitos reservados.', footerDevBy: 'Desenvolvido por', contact: 'Contato'
   },
   'en': {
     title: 'Invoice Converter', ready: 'Ready',
@@ -31,7 +32,8 @@ const I18N = {
     loadingPreview: 'Loading preview...', previewReady: 'Preview ready. Adjust if necessary.',
     needImportFirst: 'Import the files first', needPreviewFirst: 'Import and load preview first',
     generating: 'Generating invoices...', generatedOk: 'Invoices generated.', generatedWithWarnings: 'Generated with warnings',
-    pdfPending: 'PDF pending', warningsLabel: 'Warnings:'
+    pdfPending: 'PDF pending', warningsLabel: 'Warnings:',
+    footerCopy: '© {year} ABZ Group. All rights reserved.', footerDevBy: 'Developed by', contact: 'Contact'
   }
 };
 function getLang(){ return localStorage.getItem('lang') || 'pt-BR'; }
@@ -56,6 +58,10 @@ function applyI18n(){
   const l2=$('#lnkZipAll'); if(l2){ l2.textContent=t('zipAll'); }
   const sel=$('#langSel'); if(sel){ sel.value=getLang(); }
   const idate=$('#invoiceDate'); if(idate){ idate.placeholder=t('datePlaceholder'); }
+  // footer
+  const fc=$('#footerCopy'); if(fc){ fc.innerHTML = t('footerCopy').replace('{year}', new Date().getFullYear()); }
+  const fd=$('#footerDevBy'); if(fd){ fd.textContent = t('footerDevBy'); }
+  const fct=$('#footerContact'); if(fct){ fct.textContent = t('contact'); }
 }
 $('#langSel')?.addEventListener('change', (e)=>{ localStorage.setItem('lang', e.target.value); applyI18n(); });
 
