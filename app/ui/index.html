@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Conversor Invoice</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style> body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; } </style>
+  <link rel="icon" href="data:," />
+</head>
+<body class="bg-gray-50 text-slate-800">
+  <div class="min-h-screen">
+    <header class="bg-white shadow">
+      <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="h-8 w-8 rounded bg-blue-600"></div>
+          <h1 id="appTitle" class="text-xl font-semibold">Conversor Invoice</h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <select id="langSel" class="border rounded px-2 py-1 text-sm">
+            <option value="pt-BR">Português (BR)</option>
+            <option value="en">English</option>
+          </select>
+          <div class="text-sm text-slate-500" id="status">Pronto</div>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+      <!-- Import -->
+      <section class="bg-white rounded-lg shadow p-4">
+        <h2 id="hImport" class="text-lg font-semibold mb-3">1) Importar Arquivos</h2>
+        <div class="grid md:grid-cols-3 gap-4 items-end">
+          <div>
+            <label id="lblAbz" class="block text-sm font-medium text-slate-700 mb-1">ABZ - Charge Rate.xlsx</label>
+            <input id="fileAbz" type="file" accept=".xlsx,.xls" class="hidden" />
+            <button id="btnPickAbz" type="button" class="inline-flex items-center gap-2 bg-slate-600 hover:bg-slate-700 text-white font-medium px-3 py-2 rounded">Selecionar arquivo</button>
+            <span id="fileAbzName" class="ml-2 text-sm text-slate-600">Nenhum arquivo</span>
+          </div>
+          <div>
+            <label id="lblAnfin" class="block text-sm font-medium text-slate-700 mb-1">AN-FIN - Medição.xlsx</label>
+            <input id="fileAnfin" type="file" accept=".xlsx,.xls" class="hidden" />
+            <button id="btnPickAnfin" type="button" class="inline-flex items-center gap-2 bg-slate-600 hover:bg-slate-700 text-white font-medium px-3 py-2 rounded">Selecionar arquivo</button>
+            <span id="fileAnfinName" class="ml-2 text-sm text-slate-600">Nenhum arquivo</span>
+          </div>
+          <div class="flex gap-3">
+            <button id="btnImport" class="mt-6 inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded">Importar</button>
+            <div class="mt-6 text-sm"><span id="lblSession">Sessão:</span> <span id="sessionId" class="font-mono text-blue-700">–</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Preview / Overrides -->
+      <section class="bg-white rounded-lg shadow p-4">
+        <div class="flex items-center justify-between mb-3">
+          <h2 id="hPreview" class="text-lg font-semibold">2) Preview e Ajustes</h2>
+          <button id="btnPreview" class="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-800 text-white font-medium px-3 py-2 rounded">Carregar Preview</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm" id="tbl">
+            <thead>
+              <tr class="bg-slate-100 text-slate-700">
+                <th id="thColab" class="p-2 text-left">Colaborador</th>
+                <th id="thServiceDesc" class="p-2 text-left">Descrição Serviço</th>
+                <th id="thUnitPrice" class="p-2">Unit Price</th>
+                <th id="thQty" class="p-2">Qty</th>
+                <th id="thTotalServ" class="p-2">Total Serviço</th>
+                <th id="thAdditional" class="p-2">Additional</th>
+                <th id="thExpenses" class="p-2">Expenses</th>
+                <th id="thOverrideQty" class="p-2">Override Qty</th>
+                <th id="thOverrideUnit" class="p-2">Override Unit</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Meta + Generate -->
+      <section class="bg-white rounded-lg shadow p-4">
+        <h2 id="hGenerate" class="text-lg font-semibold mb-3">3) Gerar Invoices</h2>
+        <div class="grid md:grid-cols-4 gap-4">
+          <div>
+            <label id="lblInvoiceDate" class="block text-sm font-medium text-slate-700 mb-1">Invoice Date</label>
+            <input id="invoiceDate" type="text" placeholder="dd/mm/aaaa" class="block w-full border rounded px-3 py-2" />
+          </div>
+          <div>
+            <label id="lblInvoiceNo" class="block text-sm font-medium text-slate-700 mb-1">Invoice No</label>
+            <input id="invoiceNo" type="text" class="block w-full border rounded px-3 py-2" />
+          </div>
+          <div>
+            <label id="lblCallOff" class="block text-sm font-medium text-slate-700 mb-1">Call-Off</label>
+            <input id="callOff" type="text" class="block w-full border rounded px-3 py-2" />
+          </div>
+          <div class="flex items-end">
+            <button id="btnGenerate" class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded">Gerar Invoices</button>
+          </div>
+        </div>
+        <div class="mt-4 flex gap-3 items-center">
+          <a id="lnkZipPdf" href="#" class="text-blue-700 underline hidden" download>Baixar ZIP (PDF)</a>
+          <a id="lnkZipAll" href="#" class="text-blue-700 underline hidden" download>Baixar ZIP (Tudo)</a>
+        </div>
+        <div id="progress" class="mt-3 text-sm text-slate-600 whitespace-pre-line hidden"></div>
+        <div id="result" class="mt-4 space-y-2"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
