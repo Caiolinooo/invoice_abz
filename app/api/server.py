@@ -4,6 +4,7 @@ import json
 import uuid
 import zipfile
 from typing import Dict, List, Optional, Callable
+import datetime as dt
 
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import JSONResponse, FileResponse, RedirectResponse
@@ -25,12 +26,36 @@ except ModuleNotFoundError:
     from utils.libreoffice_export import xlsx_to_pdf, ensure_libreoffice
 
 app = FastAPI(title="Payroll Conversion API", version="0.1.0")
+
+# Ensure required directories exist before mounting static files
+OUT_DIR = Path("out")
+OUT_DIR.mkdir(parents=True, exist_ok=True)
+
 # Serve outputs and UI statically
 app.mount("/out", StaticFiles(directory="out"), name="out")
 app.mount("/ui", StaticFiles(directory="app/ui", html=True), name="ui")
 
 SESSIONS = Path("out/sessions")
 SESSIONS.mkdir(parents=True, exist_ok=True)
+
+# Persistent invoice sequence storage
+SEQ_FILE = Path("out/invoice_seq.json")
+
+def _seq_read() -> dict:
+    try:
+        if SEQ_FILE.exists():
+            return json.loads(SEQ_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        pass
+    return {"last": 0}
+
+def _seq_write(last: int) -> None:
+    SEQ_FILE.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        SEQ_FILE.write_text(json.dumps({"last": int(last)}, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:
+        # best-effort
+        pass
 
 
 # Simple progress tracking per session
@@ -64,7 +89,11 @@ class GenerateRequest(BaseModel):
     invoice_no: Optional[str] = None
     call_off: Optional[str] = None
     # Optional overrides by employee
-    overrides: Optional[Dict[str, Dict]] = None  # {name: {quantity: x, unit_price: y}}
+    # Backward compatible:
+    #  - {name: {quantity, unit_price}}  -> aplica na 1ª linha de serviço
+    # Novo formato (suportado adicionalmente):
+    #  - {name: [{line: <idx>, quantity?, unit_price?}, ...]}
+    overrides: Optional[Dict[str, object]] = None
 
 
 def _save_upload(dst: Path, uf: UploadFile) -> Path:
@@ -89,71 +118,142 @@ def _norm(s: str) -> str:
     return re.sub(r'[^a-z0-9]+', '', s.lower())
 
 
-def _build_preview(abz: Path, anfin: Path) -> Dict[str, Dict]:
-    charge_df = read_charge_rate_table(abz, "Charge Rate")
-    ind = extract_individual_totals(anfin)
-    costs_gbp = extract_costs_gbp(anfin, {k: v['exchange_rate'] for k, v in ind.items()})
+def _find_template_for_employee(employee_name: str, invoice_sheets: list) -> str:
+    """
+    Advanced template matching algorithm for diverse situations:
+    1. Handle accented characters (Brandão → Brandao)
+    2. Use first name as default, second name for disambiguation
+    3. Handle complex names and various sheet naming patterns
+    4. Try multiple strategies for maximum compatibility
+    """
+    words = employee_name.split()
+    if not words:
+        return None
 
+    # Strategy 1: Exact first name match
+    first = _norm(words[0])
+    first_matches = [s for s in invoice_sheets if first in _norm(s)]
+
+    if len(first_matches) == 1:
+        return first_matches[0]
+
+    elif len(first_matches) > 1:
+        # Multiple matches with first name, disambiguate with second name
+        if len(words) >= 2:
+            second = _norm(words[1])
+            refined_matches = [s for s in first_matches if second in _norm(s)]
+            if refined_matches:
+                return refined_matches[0]
+
+        # Try with any other word for disambiguation
+        for word in words[1:]:
+            word_norm = _norm(word)
+            if len(word_norm) > 2:  # Skip short words like "de", "da", "do"
+                refined_matches = [s for s in first_matches if word_norm in _norm(s)]
+                if refined_matches:
+                    return refined_matches[0]
+
+        # If still ambiguous, return first match
+        return first_matches[0]
+
+    # Strategy 2: No first name match, try compound names (Filipi Brandão → Filipi Brandao)
+    if len(words) >= 2:
+        compound_patterns = [
+            f"{words[0]} {words[1]}",  # "Filipi Brandão"
+            f"{words[0]}_{words[1]}",  # "Filipi_Brandão"
+            f"{words[0]}{words[1]}",   # "FilipiBrandão"
+        ]
+
+        for pattern in compound_patterns:
+            pattern_norm = _norm(pattern)
+            matches = [s for s in invoice_sheets if pattern_norm in _norm(s)]
+            if matches:
+                return matches[0]
+
+    # Strategy 3: Try any significant word in the name
+    for word in words:
+        word_norm = _norm(word)
+        if len(word_norm) > 2:  # Skip very short words
+            matches = [s for s in invoice_sheets if word_norm in _norm(s)]
+            if matches:
+                return matches[0]
+
+    # Strategy 4: Fuzzy matching - try partial matches
+    for sheet in invoice_sheets:
+        sheet_norm = _norm(sheet)
+        # Check if any word from employee name appears in sheet name
+        for word in words:
+            word_norm = _norm(word)
+            if len(word_norm) > 3 and word_norm in sheet_norm:
+                return sheet
+
+    return None
+
+
+def _build_preview_single_file(abz: Path) -> Dict[str, Dict]:
+    """Build preview using only the ABZ charge rate file.
+    Global rule: one invoice per person. If a name appears multiple times
+    with different positions/rates, create multiple service lines in the
+    same invoice, each with its own unit_price and quantity.
+    """
+    charge_df = read_charge_rate_table(abz, "Charge Rate")
     names = sorted(set(charge_df['Name'].astype(str).dropna().tolist()))
 
     from openpyxl import load_workbook
     wb = load_workbook(abz, read_only=True)
     sheets = wb.sheetnames
+    invoice_sheets = [s for s in sheets if s.lower().strip().endswith('_invoice')]
 
     preview: Dict[str, Dict] = {}
+    # Import aggregator (handles multi-position employees)
+    try:
+        from app.utils.abz_charge_rate_parser import aggregate_employee  # type: ignore
+    except Exception:
+        from utils.abz_charge_rate_parser import aggregate_employee  # type: ignore
+
     for name in names:
         sub = charge_df[charge_df['Name'].astype(str) == name]
 
-        # Template meta (normalize to handle accents, e.g., Bárbara -> Barbara)
-        first = _norm(name.split()[0])
-        tpl_candidates = [s for s in sheets if s.lower().endswith('_invoice') and first in _norm(s)]
+        # Template meta using improved matching
+        template_sheet = _find_template_for_employee(name, invoice_sheets)
         meta = {'invoice_no': None, 'invoice_date': None, 'call_off': None}
-        if tpl_candidates:
-            meta = get_invoice_meta(abz, tpl_candidates[0])
+        # Do not read call_off from template - only use form values
+        if template_sheet:
+            template_meta = get_invoice_meta(abz, template_sheet)
+            meta['invoice_no'] = template_meta.get('invoice_no')
+            meta['invoice_date'] = template_meta.get('invoice_date')
+            # Explicitly ignore call_off from template
 
-        # Service row
-        days = float(sub['Days'].sum()) if 'Days' in sub.columns else 0.0
-        pos = str(sub['Position'].iloc[0]) if 'Position' in sub.columns and not sub['Position'].empty else ''
-        rate = float(sub['Charge Rate (GBP)'].iloc[0]) if 'Charge Rate (GBP)' in sub.columns and not sub['Charge Rate (GBP)'].empty else 0.0
-        # Round monetary to 2 decimals
-        rate = round(rate, 2)
+        # Build service lines per Position/Rate using aggregator
+        agg = aggregate_employee(sub)
+        preview_items: List[Dict] = []
 
-        # description with call-off and month if available
-        desc = f"{_friendly_name(name)} - {pos}"
-        if meta.get('call_off'):
-            desc += f" - Call Off - {meta['call_off']}"
-        preview_items: List[Dict] = [
-            {"description": desc, "unit_price": rate, "quantity": days, "final": round(rate * days, 2)}
-        ]
+        # service lines
+        if agg is not None and not agg.empty:
+            services = agg[agg['Type'] == 'service']
+            for _, r in services.iterrows():
+                # r['Description'] comes as "<Name> - <Position>"; keep Position only for description
+                desc_role = str(r.get('Description') or '')
+                if ' - ' in desc_role:
+                    desc_role = desc_role.split(' - ', 1)[-1]
+                desc = f"{_friendly_name(name)} - {desc_role}"
+                # do not append Call-Off here; it will be controlled only by the form during generation
+                unit = float(r.get('Unit Price (GBP)') or 0.0)
+                qty = float(r.get('Quantity') or 0.0)
+                preview_items.append({
+                    "description": desc,
+                    "unit_price": round(unit, 2),
+                    "quantity": qty,
+                    "final": round(unit * qty, 2),
+                })
 
-        # Additional: prefer ABZ, fallback AN-FIN
-        add_val = None
-        if 'Brazilian Payroll Additionals (GBP)' in sub.columns:
-            add_val = float(sub['Brazilian Payroll Additionals (GBP)'].sum())
-        if (add_val is None or abs(add_val) < 1e-9):
-            if name in ind:
-                add_val = ind[name]['additional_gbp']
-            else:
-                for k, v in ind.items():
-                    if k.lower().split()[0] == name.lower().split()[0]:
-                        add_val = v['additional_gbp']
-                        break
-        if add_val and abs(add_val) > 1e-6:
-            preview_items.append({"description": "Brazilian Payroll Additional", "final": round(float(add_val), 2)})
-
-        # Expenses
-        exp_val = None
-        if name in costs_gbp:
-            exp_val = costs_gbp[name]
-        else:
-            for k, v in costs_gbp.items():
-                if k.lower().split()[0] == name.lower().split()[0]:
-                    exp_val = v
-                    break
-        if exp_val is None:
-            exp_val = float(sub['Expenses'].sum()) if 'Expenses' in sub.columns else 0.0
-        if exp_val and abs(exp_val) > 1e-6:
-            preview_items.append({"description": "Expenses", "final": round(float(exp_val), 2)})
+        # Additional and Expenses totals (single lines each)
+        add_total = float(agg[agg['Type'] == 'additional']['Final Price (GBP)'].sum()) if agg is not None and not agg.empty else 0.0
+        if add_total and abs(add_total) > 1e-6:
+            preview_items.append({"description": "Brazilian Payroll Additional", "final": round(add_total, 2)})
+        exp_total = float(agg[agg['Type'] == 'expenses']['Final Price (GBP)'].sum()) if agg is not None and not agg.empty else 0.0
+        if exp_total and abs(exp_total) > 1e-6:
+            preview_items.append({"description": "Expenses", "final": round(exp_total, 2)})
 
         preview[name] = {
             "items": preview_items,
@@ -163,8 +263,35 @@ def _build_preview(abz: Path, anfin: Path) -> Dict[str, Dict]:
     return preview
 
 
+def _build_preview(abz: Path, anfin: Path) -> Dict[str, Dict]:
+    """Legacy function for backward compatibility - delegates to single file version."""
+    return _build_preview_single_file(abz)
+
+
 @app.post("/api/import")
-async def api_import(abz: UploadFile = File(...), anfin: UploadFile = File(...)):
+async def api_import(abz: UploadFile = File(...)):
+    sid = uuid.uuid4().hex
+    sdir = SESSIONS / sid
+    sdir.mkdir(parents=True, exist_ok=True)
+
+    abz_path = _save_upload(sdir / abz.filename, abz)
+
+    preview = _build_preview_single_file(abz_path)
+
+    (sdir / "meta.json").write_text(
+        json.dumps({
+            "abz": abz.filename,  # Store relative filename, not full path
+            "preview": preview,
+        }, ensure_ascii=False, indent=2),
+        encoding="utf-8"
+    )
+
+    return {"session_id": sid, "employees": list(preview.keys())}
+
+
+@app.post("/api/import-legacy")
+async def api_import_legacy(abz: UploadFile = File(...), anfin: UploadFile = File(...)):
+    """Legacy endpoint for backward compatibility with two files."""
     sid = uuid.uuid4().hex
     sdir = SESSIONS / sid
     sdir.mkdir(parents=True, exist_ok=True)
@@ -172,14 +299,12 @@ async def api_import(abz: UploadFile = File(...), anfin: UploadFile = File(...))
     abz_path = _save_upload(sdir / abz.filename, abz)
     anfin_path = _save_upload(sdir / anfin.filename, anfin)
 
-
-
     preview = _build_preview(abz_path, anfin_path)
 
     (sdir / "meta.json").write_text(
         json.dumps({
-            "abz": str(abz_path),
-            "anfin": str(anfin_path),
+            "abz": abz.filename,  # Store relative filename, not full path
+            "anfin": anfin.filename,  # Store relative filename, not full path
             "preview": preview,
         }, ensure_ascii=False, indent=2),
         encoding="utf-8"
@@ -219,10 +344,49 @@ async def api_generate_pdf(req: GenerateRequest):
     if not meta_f.exists():
         raise HTTPException(404, "session not found")
     meta = _read_json(meta_f)
-    abz = Path(meta["abz"])  # type: ignore
-    anfin = Path(meta["anfin"])  # kept for parity if needed later
 
-    preview = meta.get("preview") or _build_preview(abz, anfin)
+    # First, get the uploaded ABZ file path (absolute path)
+    uploaded_abz_path = sdir / meta["abz"]
+    abz = uploaded_abz_path
+
+    # Check if this is a legacy session with anfin file
+    if "anfin" in meta:
+        anfin = sdir / meta["anfin"]  # Also make anfin absolute
+        preview = meta.get("preview") or _build_preview(uploaded_abz_path, anfin)
+    else:
+        preview = meta.get("preview") or _build_preview_single_file(uploaded_abz_path)
+
+    # Check if the uploaded file has invoice templates
+    from openpyxl import load_workbook
+    try:
+        wb = load_workbook(abz, read_only=True)
+        sheets = wb.sheetnames
+        invoice_sheets = [s for s in sheets if s.lower().strip().endswith('_invoice')]
+        wb.close()
+
+        if not invoice_sheets:
+            # Fallback to DADOS directory if uploaded file has no templates
+            print(f"Warning: Uploaded file has no invoice templates, trying DADOS fallback...")
+            dados_dir = Path("DADOS")
+            abz_files = list(dados_dir.glob("*ABZ*.xlsx"))
+            if abz_files:
+                abz = abz_files[0]  # Use first ABZ file as fallback
+                print(f"Using fallback ABZ file: {abz}")
+            else:
+                raise HTTPException(500, "No invoice templates found in uploaded file and no fallback ABZ file in DADOS/")
+        else:
+            print(f"Using uploaded ABZ file with {len(invoice_sheets)} invoice templates")
+
+    except Exception as e:
+        print(f"Error checking uploaded file: {e}")
+        # Try DADOS fallback
+        dados_dir = Path("DADOS")
+        abz_files = list(dados_dir.glob("*ABZ*.xlsx"))
+        if abz_files:
+            abz = abz_files[0]
+            print(f"Using fallback ABZ file: {abz}")
+        else:
+            raise HTTPException(500, f"Cannot read uploaded file and no fallback available: {e}")
 
     from openpyxl import load_workbook
     wb = load_workbook(abz, read_only=True)
@@ -245,21 +409,29 @@ async def api_generate_pdf(req: GenerateRequest):
         warnings.append("LibreOffice não encontrado; PDFs não serão gerados (tentativa de instalação pode ter falhado).")
 
     i = 0
-    invoice_sheets = [s for s in sheets if s.lower().endswith('_invoice')]
+    invoice_sheets = [s for s in sheets if s.lower().strip().endswith('_invoice')]
+
+    # Invoice number sequencing (persistent)
+    seq = _seq_read()
+    last_used = int(seq.get("last", 0) or 0)
+    # If a numeric invoice_no was provided, start from it; otherwise continue sequence
+    try:
+        start_no = int(str(req.invoice_no).strip()) if (req.invoice_no is not None and str(req.invoice_no).strip().isdigit()) else (last_used + 1)
+    except Exception:
+        start_no = last_used + 1
+    assigned = 0
 
     for name, pdata in preview.items():
         i += 1
         _update_progress(sdir, stage=f"Gerando {i}/{total} – {name}", current=i, total=total, percent=int(i*100/total))
 
-        first = _norm(name.split()[0])
-        tpl_candidates = [s for s in invoice_sheets if first in _norm(s)]
-        if not tpl_candidates:
+        tpl = _find_template_for_employee(name, invoice_sheets)
+        if not tpl:
             warnings.append(
-                f"Template não encontrado para {name} (busca por '{first}'). Abas de invoice disponíveis: {', '.join(invoice_sheets) if invoice_sheets else 'nenhuma'}"
+                f"Template não encontrado para {name}. Abas de invoice disponíveis: {', '.join(invoice_sheets) if invoice_sheets else 'nenhuma'}"
             )
             _update_progress(sdir, warnings=warnings)
             continue  # não impede os demais
-        tpl = tpl_candidates[0]
 
         # merge meta: request overrides > preview meta
         m = dict(pdata.get("meta") or {})
@@ -267,25 +439,86 @@ async def api_generate_pdf(req: GenerateRequest):
             m["invoice_date"] = req.invoice_date
         if req.invoice_no is not None:
             m["invoice_no"] = req.invoice_no
+        # Only set call_off if it has meaningful content
         if req.call_off is not None:
-            m["call_off"] = req.call_off
+            co_str = str(req.call_off).strip()
+            if co_str and co_str.lower() not in ('none', 'null', 'n/a', 'nan', '-', ''):
+                m["call_off"] = co_str
+            else:
+                m["call_off"] = None
 
-        # items (always three lines layout)
+        # items (now may include multiple service lines)
         items = list(pdata.get("items") or [])
-        # apply overrides if present
+        # apply overrides if present (backward compatible + per-line)
         ov = (req.overrides or {}).get(name)
-        if ov:
-            if "quantity" in ov and items:
-                # apply to the first service row
-                q = float(ov["quantity"])
-                items[0]["quantity"] = q
-                unit = float(items[0].get("unit_price") or 0.0)
-                items[0]["final"] = round(unit * q, 2)
-            if "unit_price" in ov and items:
-                u = float(ov["unit_price"])
-                items[0]["unit_price"] = round(u, 2)
-                q = float(items[0].get("quantity") or 0.0)
-                items[0]["final"] = round(items[0]["unit_price"] * q, 2)
+        try:
+            # Per-employee Call-Off override (applies to invoice header)
+            if isinstance(ov, dict) and "call_off" in ov:
+                co = str(ov.get("call_off") or "").strip()
+                m["call_off"] = co if co else None
+
+            # Backward compatible dict form -> apply to first service line
+            if isinstance(ov, dict) and items:
+                if "quantity" in ov:
+                    q = float(ov["quantity"])
+                    items[0]["quantity"] = q
+                    unit = float(items[0].get("unit_price") or 0.0)
+                    items[0]["final"] = round(unit * q, 2)
+                if "unit_price" in ov:
+                    u = float(ov["unit_price"])
+                    items[0]["unit_price"] = round(u, 2)
+                    q = float(items[0].get("quantity") or 0.0)
+                    items[0]["final"] = round(items[0]["unit_price"] * q, 2)
+
+            # New list form -> [{line, quantity?, unit_price?}, ...] and optional per-entry call_off
+            elif isinstance(ov, list):
+                for ent in ov:
+                    # Per-entry call_off override
+                    if isinstance(ent, dict) and "call_off" in ent:
+                        co = str(ent.get("call_off") or "").strip()
+                        m["call_off"] = co if co else None
+                        continue
+                    try:
+                        idx = int(ent.get("line", -1))
+                    except Exception:
+                        idx = -1
+                    if 0 <= idx < len(items):
+                        if "quantity" in ent:
+                            q = float(ent["quantity"])
+                            items[idx]["quantity"] = q
+                            unit = float(items[idx].get("unit_price") or 0.0)
+                            items[idx]["final"] = round(unit * q, 2)
+                        if "unit_price" in ent:
+                            u = float(ent["unit_price"])
+                            items[idx]["unit_price"] = round(u, 2)
+                            q = float(items[idx].get("quantity") or 0.0)
+                            items[idx]["final"] = round(items[idx]["unit_price"] * q, 2)
+        except Exception:
+            pass
+
+        # Assign sequential invoice number for this employee
+        assigned += 1
+        m["invoice_no"] = str(start_no + assigned - 1)
+
+        # Format display invoice number as zero-padded + '/YYYY'
+        try:
+            import re
+            # Year from invoice_date if present; otherwise current year
+            year_str = None
+            if isinstance(req.invoice_date, str) and req.invoice_date.strip():
+                mm = re.search(r"(\d{4})", req.invoice_date)
+                if mm:
+                    year_str = mm.group(1)
+            if not year_str:
+                year_str = str(dt.datetime.now().year)
+            # Determine padding width: at least 7, or respect digits typed by user
+            input_no = str(req.invoice_no).strip() if req.invoice_no is not None else ''
+            digit_seq = ''.join(ch for ch in input_no if ch.isdigit())
+            pad_width = max(7, len(digit_seq))
+            padded_no = str(m.get('invoice_no')).zfill(pad_width)
+            display_inv_no = f"{padded_no}/{year_str}"
+        except Exception:
+            display_inv_no = str(m.get('invoice_no'))
 
         # Generate single-sheet XLSX from template
         xlsx_path = generate_from_abz_template(
@@ -295,7 +528,7 @@ async def api_generate_pdf(req: GenerateRequest):
             line_items=items,
             out_dir=xlsx_dir,
             invoice_date=m.get("invoice_date"),
-            invoice_no=m.get("invoice_no"),
+            invoice_no=display_inv_no,
             call_off=m.get("call_off"),
         )
         pdf_path = pdf_dir / (xlsx_path.stem + ".pdf")
@@ -317,6 +550,13 @@ async def api_generate_pdf(req: GenerateRequest):
             "url_xlsx": url_xlsx,
             "url_pdf": url_pdf,
         })
+
+    # Persist the last used invoice number
+    try:
+        if assigned > 0:
+            _seq_write(start_no + assigned - 1)
+    except Exception:
+        pass
 
     wb.close()
     _update_progress(sdir, stage="Concluído", percent=100, done=True, warnings=warnings)
@@ -356,6 +596,12 @@ async def api_session_zip(session_id: str, kind: str = "pdf"):
         for f in files:
             zf.write(f, arcname=f.name)
     return FileResponse(str(zip_path), media_type="application/zip", filename=zip_path.name)
+
+
+@app.get("/api/invoice-seq")
+async def api_invoice_seq():
+    data = _seq_read()
+    return {"last": int(data.get("last", 0) or 0)}
 
 
 @app.get("/")

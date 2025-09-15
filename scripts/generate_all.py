@@ -81,7 +81,18 @@ for name in names:
     wb = load_workbook(abz, read_only=True)
     first = name.split()[0]
     # find sheet that endswith '_Invoice' and contains the first name (case-insensitive)
-    tpl_candidates = [s for s in wb.sheetnames if s.lower().endswith('_invoice') and first.lower() in s.lower()]
+    # Handle accented characters
+    import unicodedata
+    def normalize_name(name):
+        return unicodedata.normalize('NFD', name).encode('ascii', 'ignore').decode('ascii')
+
+    first_normalized = normalize_name(first.lower())
+    tpl_candidates = []
+    for s in wb.sheetnames:
+        if s.lower().endswith('_invoice'):
+            sheet_normalized = normalize_name(s.lower())
+            if first_normalized in sheet_normalized or first.lower() in s.lower():
+                tpl_candidates.append(s)
     wb.close()
     if not tpl_candidates:
         raise SystemExit(f"Sheet for {name} not found in ABZ (expected something like '{first}_Invoice').")
@@ -93,6 +104,9 @@ for name in names:
         employee_name=name,
         line_items=items,
         out_dir=out_dir,
+        invoice_date="10/09/2025",
+        invoice_no="xx/0000001/2025",  # Test with xx/ prefix to verify removal
+        call_off="P25-122",
     )
     print('Generated:', out)
 

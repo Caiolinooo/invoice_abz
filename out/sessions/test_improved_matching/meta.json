@@ -1,0 +1,74 @@
+{
+  "abz": "uploaded_abz.xlsx",
+  "employees": [
+    {
+      "name": "Rafael Cabral Marcilio",
+      "services": [
+        {
+          "Description": "Rafael Cabral - ROV Pilot",
+          "Unit Price (GBP)": 1800,
+          "Quantity": 5,
+          "Final Price (GBP)": 9000
+        }
+      ],
+      "additionals": [
+        {
+          "Description": "Brazilian Payroll Additional",
+          "Final Price (GBP)": 500
+        }
+      ],
+      "expenses": [
+        {
+          "Description": "Expenses",
+          "Final Price (GBP)": 30
+        }
+      ]
+    },
+    {
+      "name": "Rafael de Souza da Silva",
+      "services": [
+        {
+          "Description": "Rafael de Souza - ROV Supervisor",
+          "Unit Price (GBP)": 2000,
+          "Quantity": 4,
+          "Final Price (GBP)": 8000
+        }
+      ],
+      "additionals": [
+        {
+          "Description": "Brazilian Payroll Additional",
+          "Final Price (GBP)": 600
+        }
+      ],
+      "expenses": [
+        {
+          "Description": "Expenses",
+          "Final Price (GBP)": 25
+        }
+      ]
+    },
+    {
+      "name": "Filipi Brandão Lagedo",
+      "services": [
+        {
+          "Description": "Filipi - ROV Pilot",
+          "Unit Price (GBP)": 1700,
+          "Quantity": 6,
+          "Final Price (GBP)": 10200
+        }
+      ],
+      "additionals": [
+        {
+          "Description": "Brazilian Payroll Additional",
+          "Final Price (GBP)": 400
+        }
+      ],
+      "expenses": [
+        {
+          "Description": "Expenses",
+          "Final Price (GBP)": 35
+        }
+      ]
+    }
+  ]
+}

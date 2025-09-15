@@ -1,0 +1,185 @@
+{
+  "abz": "ABZ - OMEGA - Maximus Project  -Monthly Charge Rates 08.2025 (1).xlsx",
+  "preview": {
+    "Bárbara Chapeta Mattoso Franco": {
+      "items": [
+        {
+          "description": "Brazilian Payroll Additional",
+          "final": 871.63
+        }
+      ],
+      "meta": {
+        "invoice_no": "Final Price",
+        "invoice_date": null,
+        "call_off": null
+      }
+    },
+    "Caio Cesar Silva Nascimento": {
+      "items": [
+        {
+          "description": "Brazilian Payroll Additional",
+          "final": 673.14
+        }
+      ],
+      "meta": {
+        "invoice_no": "Final Price",
+        "invoice_date": null,
+        "call_off": null
+      }
+    },
+    "Daniel Vieira Silva Nunes": {
+      "items": [
+        {
+          "description": "Daniel Vieira - ROV Supervisor ",
+          "unit_price": 736.0,
+          "quantity": 12.0,
+          "final": 8832.0
+        },
+        {
+          "description": "Brazilian Payroll Additional",
+          "final": 583.46
+        }
+      ],
+      "meta": {
+        "invoice_no": "Final Price",
+        "invoice_date": null,
+        "call_off": null
+      }
+    },
+    "Fabricio Oliveira Addor Pereira": {
+      "items": [
+        {
+          "description": "Fabricio Oliveira - Piloto de ROV",
+          "unit_price": 634.0,
+          "quantity": 25.0,
+          "final": 15850.0
+        },
+        {
+          "description": "Brazilian Payroll Additional",
+          "final": 615.19
+        }
+      ],
+      "meta": {
+        "invoice_no": "Final Price",
+        "invoice_date": null,
+        "call_off": null
+      }
+    },
+    "Gabriel Leone": {
+      "items": [
+        {
+          "description": "Brazilian Payroll Additional",
+          "final": 555.98
+        }
+      ],
+      "meta": {
+        "invoice_no": "Final Price",
+        "invoice_date": null,
+        "call_off": null
+      }
+    },
+    "Kaue Toste Patrocinio": {
+      "items": [
+        {
+          "description": "Kaue Toste - Supervisor de ROV",
+          "unit_price": 735.96,
+          "quantity": 20.0,
+          "final": 14719.2
+        },
+        {
+          "description": "Brazilian Payroll Additional",
+          "final": 583.46
+        }
+      ],
+      "meta": {
+        "invoice_no": "Final Price",
+        "invoice_date": null,
+        "call_off": null
+      }
+    },
+    "Otavio Augusto Ribeiro": {
+      "items": [
+        {
+          "description": "Brazilian Payroll Additional",
+          "final": 621.88
+        }
+      ],
+      "meta": {
+        "invoice_no": "Final Price",
+        "invoice_date": null,
+        "call_off": null
+      }
+    },
+    "Rafael Cabral Marcilio": {
+      "items": [
+        {
+          "description": "Brazilian Payroll Additional",
+          "final": 644.12
+        }
+      ],
+      "meta": {
+        "invoice_no": "Final Price",
+        "invoice_date": null,
+        "call_off": null
+      }
+    },
+    "Rafael de Souza da Silva": {
+      "items": [
+        {
+          "description": "Rafael de - Piloto de ROV Sr",
+          "unit_price": 679.35,
+          "quantity": 24.0,
+          "final": 16304.35
+        },
+        {
+          "description": "Brazilian Payroll Additional",
+          "final": 598.64
+        }
+      ],
+      "meta": {
+        "invoice_no": "Final Price",
+        "invoice_date": null,
+        "call_off": null
+      }
+    },
+    "Rodrigo Gralha oliveira Do Rego": {
+      "items": [
+        {
+          "description": "Brazilian Payroll Additional",
+          "final": 583.46
+        }
+      ],
+      "meta": {
+        "invoice_no": "Final Price",
+        "invoice_date": null,
+        "call_off": null
+      }
+    },
+    "Semaias Felicissimo Araujo Pinto ": {
+      "items": [
+        {
+          "description": "Brazilian Payroll Additional",
+          "final": 603.69
+        }
+      ],
+      "meta": {
+        "invoice_no": "Final Price",
+        "invoice_date": null,
+        "call_off": null
+      }
+    },
+    "Vinicius Brandao da Silva ": {
+      "items": [
+        {
+          "description": "Brazilian Payroll Additional",
+          "final": 589.46
+        }
+      ],
+      "meta": {
+        "invoice_no": "Final Price",
+        "invoice_date": null,
+        "call_off": null
+      }
+    }
+  }
+}

@@ -31,8 +31,23 @@ def ensure_packages():
         subprocess.check_call(cmd)
 
 
+def ensure_directories():
+    """Ensure required directories exist before starting the server."""
+    from pathlib import Path
+
+    # Create required directories
+    out_dir = Path("out")
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    sessions_dir = out_dir / "sessions"
+    sessions_dir.mkdir(parents=True, exist_ok=True)
+
+    print(f"Created directories: {out_dir}, {sessions_dir}")
+
+
 def main():
     ensure_packages()
+    ensure_directories()
     import uvicorn
     from app.api.server import app as fastapi_app
     print("Starting API on http://localhost:8000 ...")

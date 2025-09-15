@@ -23,13 +23,23 @@ def export_sheet_to_pdf_with_excel(xlsx_path: Path, sheet_name: Optional[str], o
     try:
         wb = excel.Workbooks.Open(str(xlsx_path))
         try:
-            if sheet_name:
+            # If no explicit sheet, prefer a sheet ending with "_Invoice" when present
+            target = sheet_name
+            if not target:
+                try:
+                    for sh in wb.Sheets:
+                        if str(sh.Name).lower().endswith('_invoice'):
+                            target = str(sh.Name)
+                            break
+                except Exception:
+                    target = None
+            if target:
                 # Select the sheet by name (case-insensitive)
                 try:
-                    ws = wb.Sheets(sheet_name)
+                    ws = wb.Sheets(target)
                 except Exception:
                     for sh in wb.Sheets:
-                        if str(sh.Name).lower() == sheet_name.lower():
+                        if str(sh.Name).lower() == str(target).lower():
                             ws = sh
                             break
                     else:
@@ -37,7 +47,7 @@ def export_sheet_to_pdf_with_excel(xlsx_path: Path, sheet_name: Optional[str], o
                 ws.Select()
                 ws.ExportAsFixedFormat(0, str(out_pdf))  # 0 = xlTypePDF
             else:
-                # Export active sheet (or all)
+                # Export active sheet (fallback)
                 wb.ActiveSheet.ExportAsFixedFormat(0, str(out_pdf))
         finally:
             wb.Close(SaveChanges=False)

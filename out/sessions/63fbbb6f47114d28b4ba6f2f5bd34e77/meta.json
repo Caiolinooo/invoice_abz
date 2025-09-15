@@ -1,0 +1,258 @@
+{
+  "abz": "out\\sessions\\63fbbb6f47114d28b4ba6f2f5bd34e77\\MODELO ABZ - OMEGA - Maximus Project  -Monthly Charge Rates xx.2025 (1).xlsx",
+  "preview": {
+    "Caio Cesar Silva Nascimento": {
+      "items": [
+        {
+          "description": "Caio Cesar - ROV Pilot Tech 1",
+          "unit_price": 634.0,
+          "quantity": 1.0,
+          "final": 634.0
+        },
+        {
+          "description": "Brazilian Payroll Additional",
+          "final": 679.6
+        },
+        {
+          "description": "Expenses",
+          "final": 20.0
+        }
+      ],
+      "meta": {
+        "invoice_no": null,
+        "invoice_date": null,
+        "call_off": null
+      }
+    },
+    "Daniel Vieira Silva Nunes": {
+      "items": [
+        {
+          "description": "Daniel Vieira - ROV Supervisor ",
+          "unit_price": 736.0,
+          "quantity": 1.0,
+          "final": 736.0
+        },
+        {
+          "description": "Brazilian Payroll Additional",
+          "final": 589.06
+        },
+        {
+          "description": "Expenses",
+          "final": 20.0
+        }
+      ],
+      "meta": {
+        "invoice_no": null,
+        "invoice_date": null,
+        "call_off": null
+      }
+    },
+    "Fabricio Oliveira Addor Pereira": {
+      "items": [
+        {
+          "description": "Fabricio Oliveira - Piloto de ROV",
+          "unit_price": 634.0,
+          "quantity": 1.0,
+          "final": 634.0
+        },
+        {
+          "description": "Brazilian Payroll Additional",
+          "final": 621.1
+        },
+        {
+          "description": "Expenses",
+          "final": 20.0
+        }
+      ],
+      "meta": {
+        "invoice_no": null,
+        "invoice_date": null,
+        "call_off": null
+      }
+    },
+    "Gabriel Leone": {
+      "items": [
+        {
+          "description": "Gabriel Leone - Surveyor",
+          "unit_price": 691.0,
+          "quantity": 2.0,
+          "final": 1382.0
+        },
+        {
+          "description": "Brazilian Payroll Additional",
+          "final": 561.32
+        },
+        {
+          "description": "Expenses",
+          "final": 40.0
+        }
+      ],
+      "meta": {
+        "invoice_no": null,
+        "invoice_date": null,
+        "call_off": null
+      }
+    },
+    "Kaue Toste Patrocinio": {
+      "items": [
+        {
+          "description": "Kaue Toste - Supervisor de ROV",
+          "unit_price": 735.96,
+          "quantity": 1.0,
+          "final": 735.96
+        },
+        {
+          "description": "Brazilian Payroll Additional",
+          "final": 589.06
+        },
+        {
+          "description": "Expenses",
+          "final": 20.0
+        }
+      ],
+      "meta": {
+        "invoice_no": null,
+        "invoice_date": null,
+        "call_off": null
+      }
+    },
+    "Otavio Augusto Ribeiro": {
+      "items": [
+        {
+          "description": "Otavio Augusto - Coordenador",
+          "unit_price": 769.93,
+          "quantity": 1.0,
+          "final": 769.93
+        },
+        {
+          "description": "Brazilian Payroll Additional",
+          "final": 627.86
+        },
+        {
+          "description": "Expenses",
+          "final": 20.0
+        }
+      ],
+      "meta": {
+        "invoice_no": null,
+        "invoice_date": null,
+        "call_off": null
+      }
+    },
+    "Rafael Cabral Marcilio": {
+      "items": [
+        {
+          "description": "Rafael Cabral - Piloto de ROV Sr",
+          "unit_price": 679.35,
+          "quantity": 1.0,
+          "final": 679.35
+        },
+        {
+          "description": "Brazilian Payroll Additional",
+          "final": 650.3
+        },
+        {
+          "description": "Expenses",
+          "final": 20.0
+        }
+      ],
+      "meta": {
+        "invoice_no": null,
+        "invoice_date": null,
+        "call_off": null
+      }
+    },
+    "Rafael de Souza da Silva": {
+      "items": [
+        {
+          "description": "Rafael de - Piloto de ROV Sr",
+          "unit_price": 679.35,
+          "quantity": 1.0,
+          "final": 679.35
+        },
+        {
+          "description": "Brazilian Payroll Additional",
+          "final": 604.39
+        },
+        {
+          "description": "Expenses",
+          "final": 20.0
+        }
+      ],
+      "meta": {
+        "invoice_no": null,
+        "invoice_date": null,
+        "call_off": null
+      }
+    },
+    "Rodrigo Gralha oliveira Do Rego": {
+      "items": [
+        {
+          "description": "Rodrigo Gralha - ROV Supervisor ",
+          "unit_price": 736.0,
+          "quantity": 1.0,
+          "final": 736.0
+        },
+        {
+          "description": "Brazilian Payroll Additional",
+          "final": 589.06
+        },
+        {
+          "description": "Expenses",
+          "final": 20.0
+        }
+      ],
+      "meta": {
+        "invoice_no": null,
+        "invoice_date": null,
+        "call_off": null
+      }
+    },
+    "Semaias Felicissimo Araujo Pinto ": {
+      "items": [
+        {
+          "description": "Semaias Felicissimo - Senior ROV Pilot Tech",
+          "unit_price": 679.0,
+          "quantity": 1.0,
+          "final": 679.0
+        },
+        {
+          "description": "Brazilian Payroll Additional",
+          "final": 609.49
+        },
+        {
+          "description": "Expenses",
+          "final": 20.0
+        }
+      ],
+      "meta": {
+        "invoice_no": null,
+        "invoice_date": null,
+        "call_off": null
+      }
+    },
+    "Vinicius Brandao da Silva ": {
+      "items": [
+        {
+          "description": "Vinicius Brandao - Senior ROV Pilot Tech",
+          "unit_price": 679.0,
+          "quantity": 1.0,
+          "final": 679.0
+        },
+        {
+          "description": "Brazilian Payroll Additional",
+          "final": 595.12
+        },
+        {
+          "description": "Expenses",
+          "final": 20.0
+        }
+      ],
+      "meta": {
+        "invoice_no": null,
+        "invoice_date": null,
+        "call_off": null
+      }
+    }
+  }
+}

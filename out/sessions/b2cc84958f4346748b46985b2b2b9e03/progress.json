@@ -1,0 +1,13 @@
+{
+  "stage": "Concluído",
+  "current": 12,
+  "total": 12,
+  "percent": 100,
+  "done": true,
+  "warnings": [
+    "Template não encontrado para Kaue Toste Patrocinio (busca por 'kaue'). Abas de invoice disponíveis: Barbara_Invoice, Caio_Invoice, Daniel_Invoice, Fabricio_Invoice, Gabriel_Invoice, Rodrigo_Invoice, Semaias_Invoice, Vinicius_Invoice",
+    "Template não encontrado para Otavio Augusto Ribeiro (busca por 'otavio'). Abas de invoice disponíveis: Barbara_Invoice, Caio_Invoice, Daniel_Invoice, Fabricio_Invoice, Gabriel_Invoice, Rodrigo_Invoice, Semaias_Invoice, Vinicius_Invoice",
+    "Template não encontrado para Rafael Cabral Marcilio (busca por 'rafael'). Abas de invoice disponíveis: Barbara_Invoice, Caio_Invoice, Daniel_Invoice, Fabricio_Invoice, Gabriel_Invoice, Rodrigo_Invoice, Semaias_Invoice, Vinicius_Invoice",
+    "Template não encontrado para Rafael de Souza da Silva (busca por 'rafael'). Abas de invoice disponíveis: Barbara_Invoice, Caio_Invoice, Daniel_Invoice, Fabricio_Invoice, Gabriel_Invoice, Rodrigo_Invoice, Semaias_Invoice, Vinicius_Invoice"
+  ]
+}

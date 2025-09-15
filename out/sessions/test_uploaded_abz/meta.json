@@ -1,0 +1,57 @@
+{
+  "abz": "uploaded_abz.xlsx",
+  "employees": [
+    {
+      "name": "Caio Cesar Silva Nascimento",
+      "services": [
+        {
+          "Description": "Caio - ROV Pilot",
+          "Unit Price (GBP)": 1900,
+          "Quantity": 3,
+          "Final Price (GBP)": 5700
+        },
+        {
+          "Description": "Caio - Logistic",
+          "Unit Price (GBP)": 900,
+          "Quantity": 3,
+          "Final Price (GBP)": 2700
+        }
+      ],
+      "additionals": [
+        {
+          "Description": "Brazilian Payroll Additional",
+          "Final Price (GBP)": 700
+        }
+      ],
+      "expenses": [
+        {
+          "Description": "Expenses",
+          "Final Price (GBP)": 40
+        }
+      ]
+    },
+    {
+      "name": "Daniel Vieira Silva Nunes",
+      "services": [
+        {
+          "Description": "Daniel - ROV Supervisor",
+          "Unit Price (GBP)": 1500,
+          "Quantity": 5,
+          "Final Price (GBP)": 7500
+        }
+      ],
+      "additionals": [
+        {
+          "Description": "Brazilian Payroll Additional",
+          "Final Price (GBP)": 400
+        }
+      ],
+      "expenses": [
+        {
+          "Description": "Expenses",
+          "Final Price (GBP)": 20
+        }
+      ]
+    }
+  ]
+}

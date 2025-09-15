@@ -105,37 +105,97 @@ def get_invoice_meta(xlsx_path: Path, sheet_name: str) -> Dict[str, Optional[str
 
 
 def set_invoice_meta(ws, invoice_no=None, invoice_date=None, call_off=None):
-    """Best-effort write of meta values by scanning labels in the given worksheet.
-    Looks for label cells (Invoice No/Date/Call Off) and writes the provided value
-    to the cell on the right (or just below-right) when found.
+    """Write meta (Invoice No/Date/Call-Off) into the template in a predictable way.
+
+    Behavior:
+    - Always write into the cell immediately to the right of the label (c+1),
+      overwriting any placeholder (e.g., '01') that might exist there.
+    - Clear a couple of cells to the right to remove leftover placeholders and
+      avoid duplicated values (e.g., '01 10/09/2025').
+    - For invoice_date, normalize common formats (yyyy-mm-dd -> dd/mm/yyyy).
     """
+    import re
+
+    def _norm_date(val: str) -> str:
+        if not val:
+            return ''
+        s = str(val).strip()
+        # yyyy-mm-dd -> dd/mm/yyyy
+        m = re.match(r"^(\d{4})-(\d{2})-(\d{2})$", s)
+        if m:
+            y, mo, d = m.groups()
+            return f"{d}/{mo}/{y}"
+        # Try to extract first dd/mm/yyyy sequence if present
+        m = re.search(r"(\d{2})[/-](\d{2})[/-](\d{4})", s)
+        if m:
+            d, mo, y = m.groups()
+            return f"{d}/{mo}/{y}"
+        return s
+
     labels = []
     if invoice_no is not None:
-        labels.append(('invoice_no', ['invoice no', 'invoice number', 'invoice #'], invoice_no))
+        labels.append(('invoice_no', ['invoice no', 'invoice number', 'invoice #'], str(invoice_no).strip()))
     if invoice_date is not None:
-        labels.append(('invoice_date', ['invoice date', 'date'], invoice_date))
+        labels.append(('invoice_date', ['invoice date', 'date'], _norm_date(invoice_date)))
     if call_off is not None:
-        labels.append(('call_off', ['call off', 'call-off', 'calloff'], call_off))
+        co_str = str(call_off).strip()
+        if co_str and co_str.lower() not in ('none', 'null', 'n/a', 'nan', '-', ''):
+            labels.append(('call_off', ['call off', 'call-off', 'calloff'], co_str))
+        else:
+            # Clear call_off field in template when empty
+            labels.append(('call_off', ['call off', 'call-off', 'calloff'], ''))
 
     for key, keys, value in labels:
         kset = [k.lower() for k in keys]
         written = False
         for r in range(1, 120):
             for c in range(1, 30):
-                v = ws.cell(row=r, column=c).value
+                cell = ws.cell(row=r, column=c)
+                v = cell.value
                 if v is None:
                     continue
+
+                # Handle formulas that reference other sheets (common issue in templates)
+                if cell.data_type == 'f' and key == 'invoice_date':
+                    # If it's a formula referencing another sheet for invoice date, replace it
+                    if '!' in str(v) and 'invoice' in str(v).lower():
+                        # Replace the formula with the actual invoice date value
+                        clean_value = (str(value).strip() if value is not None else '')
+                        ws.cell(row=r, column=c).value = f"invoice date:{clean_value}"
+                        written = True
+                        break
+
                 s = str(v).strip().lower()
                 if any(k in s for k in kset):
-                    # try to write to the right
-                    for dc in range(1, 6):
-                        tgt = ws.cell(row=r, column=c+dc)
-                        if tgt.value in (None, ''):
-                            tgt.value = value
-                            written = True
-                            break
+                    # Normalize label and write values per spec
+                    try:
+                        # Clean base label (remove placeholders like 'xx/' or numbers after ':')
+                        base_lbl = s.split(':')[0] + ':' if ':' in s else s
+                        # Prepare cleaned value
+                        clean_value = (str(value).strip() if value is not None else '')
+                        if key == 'invoice_no':
+                            import re as _re_val
+                            # Remove prefixes like 'xx/' (any number of x) from user/template input
+                            clean_value = _re_val.sub(r'^\s*x{1,5}\s*/\s*', '', clean_value, flags=_re_val.I)
+                        if key == 'invoice_date':
+                            # Write in the SAME cell with no space after ':'
+                            ws.cell(row=r, column=c).value = f"{base_lbl}{clean_value}"
+                            # Clear cells to the right to avoid duplicates
+                            for dc in (1, 2, 3):
+                                ws.cell(row=r, column=c+dc).value = None
+                        else:
+                            # Keep only the clean label in label cell (removes 'xx/' etc.)
+                            ws.cell(row=r, column=c).value = base_lbl
+                            # Clear placeholders to the right and write the value in c+1
+                            for dc in (1, 2, 3):
+                                ws.cell(row=r, column=c+dc).value = None
+                            tgt = ws.cell(row=r, column=c+1)
+                            tgt.value = clean_value
+                        written = True
+                    except Exception:
+                        written = False
                     if not written:
-                        # try below to the right
+                        # fallback: try below-right
                         for dr in range(1, 4):
                             tgt = ws.cell(row=r+dr, column=c+1)
                             if tgt.value in (None, ''):
