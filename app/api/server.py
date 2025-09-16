@@ -518,6 +518,7 @@ async def api_generate_pdf(req: GenerateRequest):
             display_inv_no = str(m.get('invoice_no'))
 
         # Generate single-sheet XLSX from template
+        # Use template-based generator by default for better formatting
         xlsx_path = generate_from_abz_template(
             abz_xlsx=abz,
             template_sheet_name=tpl,
@@ -528,6 +529,7 @@ async def api_generate_pdf(req: GenerateRequest):
             invoice_no=display_inv_no,
             call_off=m.get("call_off"),
             use_default_template=use_default_template,
+            use_template_based=True,  # Use the new template-based generator
         )
         pdf_path = pdf_dir / (xlsx_path.stem + ".pdf")
         url_xlsx = f"/out/sessions/{req.session_id}/xlsx/{xlsx_path.name}"

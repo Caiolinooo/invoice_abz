@@ -10,10 +10,12 @@ try:
     from app.utils.excel_abz_template import find_invoice_table_coords, set_invoice_meta  # type: ignore
     from app.utils.filename_standardizer import generate_standardized_filename  # type: ignore
     from app.invoice.professional_generator import InvoiceProfessionalGenerator  # type: ignore
+    from app.invoice.template_based_generator import create_template_based_invoice  # type: ignore
 except ModuleNotFoundError:
     from utils.excel_abz_template import find_invoice_table_coords, set_invoice_meta  # type: ignore
     from utils.filename_standardizer import generate_standardized_filename  # type: ignore
     from invoice.professional_generator import InvoiceProfessionalGenerator  # type: ignore
+    from invoice.template_based_generator import create_template_based_invoice  # type: ignore
 
 
 def generate_from_abz_template(
@@ -26,15 +28,42 @@ def generate_from_abz_template(
     invoice_no: str = None,
     call_off: str = None,
     use_default_template: bool = False,
+    use_template_based: bool = False,
 ) -> Path:
     """
     Clone the given template sheet from the ABZ workbook and fill the Services table.
     line_items: list of dicts with keys: description, unit_price, quantity, final
     use_default_template: if True, use built-in default template instead of ABZ template
+    use_template_based: if True, use the Template_Invoice_Geral.xlsx as base
     """
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    if use_default_template:
+    if use_template_based:
+        # Use template-based generator with Template_Invoice_Geral.xlsx
+        print(f"🎨 Using template-based invoice generator for {employee_name}")
+
+        # Generate filename
+        filename = generate_standardized_filename(
+            employee_name=employee_name,
+            invoice_no=invoice_no,
+            invoice_date=invoice_date,
+            abz_path=abz_xlsx
+        )
+        output_path = out_dir / filename
+
+        # Create template-based invoice
+        result_path = create_template_based_invoice(
+            employee_name=employee_name,
+            line_items=line_items,
+            output_path=output_path,
+            invoice_date=invoice_date,
+            invoice_no=invoice_no,
+            call_off=call_off
+        )
+
+        print(f"✅ Template-based invoice created: {result_path}")
+        return result_path
+    elif use_default_template:
         # Use professional generator instead of template
         print(f"🎨 Using professional invoice generator for {employee_name}")
 
@@ -42,7 +71,8 @@ def generate_from_abz_template(
         filename = generate_standardized_filename(
             employee_name=employee_name,
             invoice_no=invoice_no,
-            invoice_date=invoice_date
+            invoice_date=invoice_date,
+            abz_path=abz_xlsx
         )
         output_path = out_dir / filename
 

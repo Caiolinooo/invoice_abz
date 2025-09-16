@@ -1,0 +1,38 @@
+{
+  "abz": "ABZ - OMEGA - Maximus Project  -Monthly Charge Rates 08.2025 (1).xlsx",
+  "preview": {
+    "Gabriel Leone": {
+      "items": [
+        {
+          "description": "Gabriel Leone - Surveyor",
+          "unit_price": 450.0,
+          "quantity": 22,
+          "final": 9900.0
+        },
+        {
+          "description": "Gabriel Leone - Party Chief",
+          "unit_price": 500.0,
+          "quantity": 8,
+          "final": 4000.0
+        },
+        {
+          "description": "Brazilian Payroll Additional",
+          "unit_price": null,
+          "quantity": null,
+          "final": 0.0
+        },
+        {
+          "description": "Expenses",
+          "unit_price": null,
+          "quantity": null,
+          "final": 0.0
+        }
+      ],
+      "meta": {
+        "invoice_no": null,
+        "invoice_date": null,
+        "call_off": null
+      }
+    }
+  }
+}
