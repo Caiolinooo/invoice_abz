@@ -9,9 +9,11 @@ from openpyxl.worksheet.page import PageMargins
 try:
     from app.utils.excel_abz_template import find_invoice_table_coords, set_invoice_meta  # type: ignore
     from app.utils.filename_standardizer import generate_standardized_filename  # type: ignore
+    from app.invoice.professional_generator import InvoiceProfessionalGenerator  # type: ignore
 except ModuleNotFoundError:
     from utils.excel_abz_template import find_invoice_table_coords, set_invoice_meta  # type: ignore
     from utils.filename_standardizer import generate_standardized_filename  # type: ignore
+    from invoice.professional_generator import InvoiceProfessionalGenerator  # type: ignore
 
 
 def generate_from_abz_template(
@@ -23,17 +25,46 @@ def generate_from_abz_template(
     invoice_date: str = None,
     invoice_no: str = None,
     call_off: str = None,
+    use_default_template: bool = False,
 ) -> Path:
     """
     Clone the given template sheet from the ABZ workbook and fill the Services table.
     line_items: list of dicts with keys: description, unit_price, quantity, final
+    use_default_template: if True, use built-in default template instead of ABZ template
     """
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    wb = load_workbook(abz_xlsx)
-    if template_sheet_name not in wb.sheetnames:
-        raise ValueError(f"Template sheet {template_sheet_name} not found")
-    tpl = wb[template_sheet_name]
+    if use_default_template:
+        # Use professional generator instead of template
+        print(f"🎨 Using professional invoice generator for {employee_name}")
+
+        # Generate filename
+        filename = generate_standardized_filename(
+            employee_name=employee_name,
+            invoice_no=invoice_no,
+            invoice_date=invoice_date
+        )
+        output_path = out_dir / filename
+
+        # Create professional invoice
+        generator = InvoiceProfessionalGenerator()
+        result_path = generator.create_invoice(
+            employee_name=employee_name,
+            line_items=line_items,
+            output_path=output_path,
+            invoice_date=invoice_date,
+            invoice_no=invoice_no,
+            call_off=call_off
+        )
+
+        print(f"✅ Professional invoice created: {result_path}")
+        return result_path
+    else:
+        # Use template from ABZ workbook (original behavior)
+        wb = load_workbook(abz_xlsx)
+        if template_sheet_name not in wb.sheetnames:
+            raise ValueError(f"Template sheet {template_sheet_name} not found")
+        tpl = wb[template_sheet_name]
 
     # Use the template sheet directly to preserve images/shapes/header-footer
     ws = tpl
@@ -46,10 +77,31 @@ def generate_from_abz_template(
     set_invoice_meta(ws, invoice_no=invoice_no, invoice_date=invoice_date, call_off=call_off)
 
     # Locate service table coordinates
-    coords = find_invoice_table_coords(abz_xlsx, template_sheet_name)
-    if not coords:
-        # fallback: try again using the copied sheet name (same layout)
-        coords = find_invoice_table_coords(abz_xlsx, ws.title) if hasattr(ws, 'title') else {}
+    if use_default_template:
+        # For default template, try to find any _invoice sheet in ABZ for coordinate detection
+        abz_wb = load_workbook(abz_xlsx)
+        invoice_sheets = [s for s in abz_wb.sheetnames if s.lower().endswith('_invoice')]
+        if invoice_sheets:
+            coords = find_invoice_table_coords(abz_xlsx, invoice_sheets[0])
+        else:
+            # No template sheets in ABZ - use hardcoded coordinates for standard ABZ layout
+            coords = {
+                'header_row': (9, 1),    # Header at row 9
+                'services_col': 1,       # Column A
+                'unit_col': 2,           # Column B
+                'qty_col': 3,            # Column C
+                'final_col': 4,          # Column D
+                'first_data_row': 10     # Row 10 (typical start)
+            }
+            print(f"🔧 No template sheets in ABZ, using default coordinates: {coords}")
+        abz_wb.close()
+    else:
+        # Original behavior for ABZ templates
+        coords = find_invoice_table_coords(abz_xlsx, template_sheet_name)
+        if not coords:
+            # fallback: try again using the copied sheet name (same layout)
+            coords = find_invoice_table_coords(abz_xlsx, ws.title) if hasattr(ws, 'title') else {}
+
     if not coords:
         # if still not found, do nothing (save raw copy)
         filename = generate_standardized_filename(

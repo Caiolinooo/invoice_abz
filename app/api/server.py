@@ -365,28 +365,14 @@ async def api_generate_pdf(req: GenerateRequest):
         wb.close()
 
         if not invoice_sheets:
-            # Fallback to DADOS directory if uploaded file has no templates
-            print(f"Warning: Uploaded file has no invoice templates, trying DADOS fallback...")
-            dados_dir = Path("DADOS")
-            abz_files = list(dados_dir.glob("*ABZ*.xlsx"))
-            if abz_files:
-                abz = abz_files[0]  # Use first ABZ file as fallback
-                print(f"Using fallback ABZ file: {abz}")
-            else:
-                raise HTTPException(500, "No invoice templates found in uploaded file and no fallback ABZ file in DADOS/")
+            # No templates in uploaded file - will use default template
+            print(f"🔧 Uploaded file has no invoice templates, will use default template")
         else:
-            print(f"Using uploaded ABZ file with {len(invoice_sheets)} invoice templates")
+            print(f"📋 Using uploaded ABZ file with {len(invoice_sheets)} invoice templates")
 
     except Exception as e:
-        print(f"Error checking uploaded file: {e}")
-        # Try DADOS fallback
-        dados_dir = Path("DADOS")
-        abz_files = list(dados_dir.glob("*ABZ*.xlsx"))
-        if abz_files:
-            abz = abz_files[0]
-            print(f"Using fallback ABZ file: {abz}")
-        else:
-            raise HTTPException(500, f"Cannot read uploaded file and no fallback available: {e}")
+        print(f"⚠️ Error checking uploaded file: {e}")
+        print("🔧 Will proceed with default template")
 
     from openpyxl import load_workbook
     wb = load_workbook(abz, read_only=True)
@@ -421,17 +407,28 @@ async def api_generate_pdf(req: GenerateRequest):
         start_no = last_used + 1
     assigned = 0
 
+    print(f"🔍 Starting generation for {total} employees")
+    print(f"📋 Invoice sheets available: {invoice_sheets}")
+
     for name, pdata in preview.items():
         i += 1
+        print(f"🔄 Processing {i}/{total}: {name}")
         _update_progress(sdir, stage=f"Gerando {i}/{total} – {name}", current=i, total=total, percent=int(i*100/total))
 
         tpl = _find_template_for_employee(name, invoice_sheets)
+        use_default_template = False
+
         if not tpl:
-            warnings.append(
-                f"Template não encontrado para {name}. Abas de invoice disponíveis: {', '.join(invoice_sheets) if invoice_sheets else 'nenhuma'}"
-            )
-            _update_progress(sdir, warnings=warnings)
-            continue  # não impede os demais
+            # No template found in ABZ file - use default template
+            use_default_template = True
+            tpl = "default_template"  # placeholder name for default template
+            print(f"🔧 No template found for {name}, using default template")
+        else:
+            print(f"📋 Using ABZ template: {tpl} for {name}")
+
+        # Check if employee has data to process
+        items = list(pdata.get("items") or [])
+        print(f"📊 Employee {name} has {len(items)} line items")
 
         # merge meta: request overrides > preview meta
         m = dict(pdata.get("meta") or {})
@@ -530,6 +527,7 @@ async def api_generate_pdf(req: GenerateRequest):
             invoice_date=m.get("invoice_date"),
             invoice_no=display_inv_no,
             call_off=m.get("call_off"),
+            use_default_template=use_default_template,
         )
         pdf_path = pdf_dir / (xlsx_path.stem + ".pdf")
         url_xlsx = f"/out/sessions/{req.session_id}/xlsx/{xlsx_path.name}"
