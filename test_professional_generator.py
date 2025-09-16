@@ -53,31 +53,37 @@ def test_professional_generator():
             wb = load_workbook(result_path)
             ws = wb.active
             
-            print("\n📋 Conteúdo da invoice:")
-            print(f"  - Logo: {ws['A3'].value}")
-            print(f"  - Título: {ws['A5'].value}")
-            print(f"  - Cliente: {ws['A8'].value}")
-            print(f"  - Data: {ws['D8'].value}")
-            print(f"  - Número: {ws['D9'].value}")
-            print(f"  - Endereço: {ws['A10'].value}")
+            print("\n📋 Conteúdo da invoice (posições exatas):")
+            print(f"  - Logo: {ws['A1'].value}")
+            print(f"  - Título: {ws['A7'].value}")
+            print(f"  - Cliente: {ws['A12'].value}")
+            print(f"  - Data: {ws['C12'].value}")
+            print(f"  - Número: {ws['C13'].value}")
+            print(f"  - Endereço: {ws['A14'].value}")
 
-            # Verificar cabeçalho da tabela
-            print(f"  - Cabeçalho tabela: {ws['A12'].value}")
+            # Verificar cabeçalho da tabela (linha 16)
+            print(f"  - Cabeçalho Services: {ws['A16'].value}")
+            print(f"  - Cabeçalho Unit Price: {ws['B16'].value}")
+            print(f"  - Cabeçalho Quantity: {ws['C16'].value}")
+            print(f"  - Cabeçalho Final Price: {ws['D16'].value}")
+            print(f"  - (GBP): {ws['D17'].value}")
 
-            # Verificar serviços
+            # Verificar serviços (linha 18+)
             services_found = 0
-            for row in range(13, 20):
+            for row in range(18, 25):
                 cell_value = ws[f'A{row}'].value
                 if cell_value and 'Gabriel' in str(cell_value):
                     services_found += 1
                     print(f"  - Serviço {services_found}: {cell_value}")
 
-            # Verificar totais
-            print(f"  - Brazilian Payroll: {ws['A16'].value if ws['A16'].value else 'Não encontrado'}")
-            print(f"  - Total: {ws['A20'].value if ws['A20'].value else 'Não encontrado'}")
+            # Verificar totais (posições exatas)
+            print(f"  - Brazilian Payroll: {ws['A24'].value if ws['A24'].value else 'Não encontrado'}")
+            print(f"  - Expenses: {ws['A27'].value if ws['A27'].value else 'Não encontrado'}")
+            print(f"  - Total: {ws['A30'].value if ws['A30'].value else 'Não encontrado'}")
+            print(f"  - Notes: {ws['A40'].value if ws['A40'].value else 'Não encontrado'}")
 
-            # Verificar Corporate Account
-            print(f"  - Corporate Account: {ws['A28'].value if ws['A28'].value else 'Não encontrado'}")
+            # Verificar Corporate Account (linha 43)
+            print(f"  - Corporate Account: {ws['A43'].value if ws['A43'].value else 'Não encontrado'}")
             
             wb.close()
             

@@ -67,12 +67,12 @@ class InvoiceProfessionalGenerator:
         ws = wb.active
         ws.title = "Invoice"
         
-        # Configurar largura das colunas exatamente como no template
-        ws.column_dimensions['A'].width = 50  # Services (mais largo)
-        ws.column_dimensions['B'].width = 12  # Unit Price
-        ws.column_dimensions['C'].width = 12  # Quantity
-        ws.column_dimensions['D'].width = 15  # Final Price
-        ws.column_dimensions['E'].width = 20  # Para informações extras
+        # Configurar largura das colunas EXATAMENTE como no template original
+        ws.column_dimensions['A'].width = 69.7109375    # Services
+        ws.column_dimensions['B'].width = 16.140625     # Unit Price
+        ws.column_dimensions['C'].width = 13.28515625   # Quantity
+        ws.column_dimensions['D'].width = 19.85546875   # Final Price
+        ws.column_dimensions['E'].width = 13.0          # Extra
 
         # Criar layout exato do template
         self._create_exact_template_layout(ws, employee_name, line_items, invoice_date, invoice_no, call_off)
@@ -86,165 +86,197 @@ class InvoiceProfessionalGenerator:
 
     def _create_exact_template_layout(self, ws, employee_name: str, line_items: List[Dict],
                                     invoice_date: str, invoice_no: str, call_off: str):
-        """Cria layout exato idêntico ao template original"""
+        """Cria layout EXATAMENTE idêntico ao template original com dimensões precisas"""
 
-        # 1. Logo ABZ GROUP (linha 3)
-        ws.merge_cells('A3:B3')
-        ws['A3'].value = "abz group"
-        ws['A3'].font = self.FONT_LOGO
-        ws['A3'].alignment = self.ALIGN_LEFT
+        # Configurar alturas das linhas EXATAMENTE como no template
+        ws.row_dimensions[7].height = 36.0      # Título Invoice
+        ws.row_dimensions[8].height = 23.25     # Cliente/Data
+        ws.row_dimensions[9].height = 23.25     # Endereço/Número
+        ws.row_dimensions[10].height = 23.25    # Cidade
+        ws.row_dimensions[12].height = 15.75    # Cabeçalho tabela
+        ws.row_dimensions[13].height = 15.75    # Linha tabela
+        ws.row_dimensions[16].height = 15.75    # Services
+        ws.row_dimensions[17].height = 16.5     # (GBP)
+        ws.row_dimensions[18].height = 15.0     # Primeira linha serviço
 
-        # 2. Título Invoice (linha 5, centralizado e sublinhado)
-        ws.merge_cells('A5:D5')
-        ws['A5'].value = "Invoice"
-        ws['A5'].font = self.FONT_TITLE
-        ws['A5'].alignment = self.ALIGN_CENTER
+        # 1. Logo ABZ GROUP (como imagem no template original - simular com texto azul)
+        # Posição aproximada onde está a imagem no template
+        ws['A1'].value = "abz group"
+        ws['A1'].font = Font(name="Calibri", size=20, bold=True, color="4472C4")
+        ws['A1'].alignment = self.ALIGN_LEFT
 
-        # 3. Informações do cliente (linhas 8-10)
-        # Linha 8: Cliente e Data da Invoice
-        ws['A8'].value = "Client: Omega Subsea Ltd"
-        ws['A8'].font = self.FONT_NORMAL
-        ws['D8'].value = f"Invoice date: {invoice_date or '15/09/2025'}"
-        ws['D8'].font = self.FONT_NORMAL
+        # 2. Título Invoice (linha 7 - posição exata do template)
+        ws['A7'].value = "Invoice"
+        ws['A7'].font = Font(name="Calibri", size=18, bold=True, underline="single")
+        ws['A7'].alignment = Alignment(horizontal='center', vertical='center')
 
-        # Linha 9: Endereço e Número da Invoice
-        ws['A9'].value = "Client Address: 30 Abercrombie Court Prospect Road,"
-        ws['A9'].font = self.FONT_NORMAL
-        ws['D9'].value = f"Invoice no: {invoice_no or '0000200/2025'}"
-        ws['D9'].font = self.FONT_NORMAL
+        # 3. Informações do cliente (posições exatas do template)
+        # Linha 12: Cliente e Data da Invoice
+        ws['A12'].value = "Client: Omega Subsea Ltd"
+        ws['A12'].font = Font(name="Calibri", size=12, bold=True)
+        ws['A12'].alignment = Alignment(vertical='center')
 
-        # Linha 10: Cidade
-        ws['A10'].value = "Westhill, AB32 6FE. UK"
-        ws['A10'].font = self.FONT_NORMAL
+        ws['C12'].value = f"Invoice date: {invoice_date or '15/09/2025'}"
+        ws['C12'].font = Font(name="Calibri", size=11)
 
-        # 4. Tabela de serviços (começando na linha 12)
-        self._create_services_table(ws, employee_name, line_items, call_off)
+        # Linha 13: Endereço e Número da Invoice
+        ws['A13'].value = "Client Address: 30 Abercrombie Court Prospect Road,"
+        ws['A13'].font = Font(name="Calibri", size=11)
 
-        # 5. Seção Notes to invoice above (linha 25)
-        ws['A25'].value = "Notes to invoice above"
-        ws['A25'].font = self.FONT_BOLD
+        ws['C13'].value = f"Invoice no: {invoice_no or '0000200/2025'}"
+        ws['C13'].font = Font(name="Calibri", size=11)
 
-        # Linha vazia para notas (linha 26)
-        ws.merge_cells('A26:D26')
-        ws['A26'].border = self.BORDER_ALL
+        # Linha 14: Cidade
+        ws['A14'].value = "Westhill, AB32 6FE. UK"
+        ws['A14'].font = Font(name="Calibri", size=11)
 
-        # 6. Corporate Account details (linha 28)
-        self._create_corporate_account_details(ws)
+        # 4. Tabela de serviços (posições exatas do template)
+        self._create_exact_services_table(ws, employee_name, line_items, call_off)
 
-    def _create_services_table(self, ws, employee_name: str, line_items: List[Dict], call_off: str):
-        """Cria tabela de serviços exatamente como no template"""
+        # 5. Seção Notes to invoice above (linha 40 como no template)
+        ws['A40'].value = "Notes to invoice above"
+        ws['A40'].font = Font(name="Calibri", size=11, bold=True)
 
-        # Cabeçalho da tabela (linha 12)
-        headers = ["Services", "Unit Price", "Quantity", "Final Price"]
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=12, column=col)
-            cell.value = header
-            cell.font = self.FONT_BOLD
-            cell.border = self.BORDER_ALL
-            cell.alignment = self.ALIGN_CENTER
+        # Linha vazia para notas (linha 41)
+        ws.merge_cells('A41:D41')
+        ws['A41'].border = self.BORDER_ALL
 
-        current_row = 13
+        # 6. Corporate Account details (linha 43)
+        self._create_exact_corporate_account_details(ws)
+
+    def _create_exact_services_table(self, ws, employee_name: str, line_items: List[Dict], call_off: str):
+        """Cria tabela de serviços nas posições EXATAS do template original"""
+
+        # Cabeçalho da tabela (linha 16 como no template)
+        ws['A16'].value = "Services"
+        ws['A16'].font = Font(name="Calibri", size=11, bold=True)
+        ws['A16'].border = self.BORDER_ALL
+        ws['A16'].alignment = self.ALIGN_CENTER
+
+        ws['B16'].value = "Unit Price"
+        ws['B16'].font = Font(name="Calibri", size=11, bold=True)
+        ws['B16'].border = self.BORDER_ALL
+        ws['B16'].alignment = self.ALIGN_CENTER
+
+        ws['C16'].value = "Quantity"
+        ws['C16'].font = Font(name="Calibri", size=11, bold=True)
+        ws['C16'].border = self.BORDER_ALL
+        ws['C16'].alignment = self.ALIGN_CENTER
+
+        ws['D16'].value = "Final Price"
+        ws['D16'].font = Font(name="Calibri", size=11, bold=True)
+        ws['D16'].border = self.BORDER_ALL
+        ws['D16'].alignment = self.ALIGN_CENTER
+
+        # Linha 17: (GBP) como no template
+        ws['D17'].value = "(GBP)"
+        ws['D17'].font = Font(name="Calibri", size=11)
+        ws['D17'].alignment = self.ALIGN_CENTER
+
+        # Linhas de serviços (começando na linha 18 como no template)
+        current_row = 18
 
         # Adicionar serviços do funcionário
         for item in line_items:
             description = item.get('description', '')
-            # Adicionar call-off na descrição se fornecido
+            # Adicionar call-off na descrição se fornecido (como no template)
             if call_off:
-                description = f"{description} - Call Off - {call_off}"
+                description = f"{description} - call off - {call_off}"
 
-            # Serviço
-            ws.cell(row=current_row, column=1).value = description
-            ws.cell(row=current_row, column=1).font = self.FONT_NORMAL
-            ws.cell(row=current_row, column=1).border = self.BORDER_ALL
+            # Usar merged cells como no template original
+            ws.merge_cells(f'A{current_row}:A{current_row+2}')
+            ws[f'A{current_row}'].value = description
+            ws[f'A{current_row}'].font = Font(name="Calibri", size=11)
+            ws[f'A{current_row}'].border = self.BORDER_ALL
+            ws[f'A{current_row}'].alignment = Alignment(vertical='center')
 
-            # Unit Price (vazio como no template)
-            ws.cell(row=current_row, column=2).border = self.BORDER_ALL
+            # Unit Price, Quantity, Final Price (merged cells como no template)
+            ws.merge_cells(f'B{current_row}:B{current_row+2}')
+            ws[f'B{current_row}'].border = self.BORDER_ALL
 
-            # Quantity (vazio como no template)
-            ws.cell(row=current_row, column=3).border = self.BORDER_ALL
+            ws.merge_cells(f'C{current_row}:C{current_row+2}')
+            ws[f'C{current_row}'].border = self.BORDER_ALL
 
-            # Final Price (vazio como no template)
-            ws.cell(row=current_row, column=4).border = self.BORDER_ALL
+            ws.merge_cells(f'D{current_row}:D{current_row+2}')
+            ws[f'D{current_row}'].border = self.BORDER_ALL
 
-            current_row += 1
+            current_row += 3  # Pular 3 linhas como no template
 
-        # Linha vazia entre serviços e totais
-        current_row += 1
+        # Brazilian Payroll Additional (linha 24 como no template)
+        ws.merge_cells('A24:A26')
+        ws['A24'].value = "Brazilian Payroll Additional"
+        ws['A24'].font = Font(name="Calibri", size=11)
+        ws['A24'].border = self.BORDER_ALL
+        ws['A24'].alignment = Alignment(vertical='center')
 
-        # Brazilian Payroll Additional
-        ws.cell(row=current_row, column=1).value = "Brazilian Payroll Additional"
-        ws.cell(row=current_row, column=1).font = self.FONT_NORMAL
-        ws.cell(row=current_row, column=1).border = self.BORDER_ALL
+        ws.merge_cells('B24:B26')
+        ws['B24'].value = "N/A"
+        ws['B24'].font = Font(name="Calibri", size=11)
+        ws['B24'].border = self.BORDER_ALL
+        ws['B24'].alignment = Alignment(horizontal='center', vertical='center')
 
-        ws.cell(row=current_row, column=2).value = "N/A"
-        ws.cell(row=current_row, column=2).font = self.FONT_NORMAL
-        ws.cell(row=current_row, column=2).border = self.BORDER_ALL
-        ws.cell(row=current_row, column=2).alignment = self.ALIGN_CENTER
+        ws.merge_cells('C24:C26')
+        ws['C24'].value = "N/A"
+        ws['C24'].font = Font(name="Calibri", size=11)
+        ws['C24'].border = self.BORDER_ALL
+        ws['C24'].alignment = Alignment(horizontal='center', vertical='center')
 
-        ws.cell(row=current_row, column=3).value = "N/A"
-        ws.cell(row=current_row, column=3).font = self.FONT_NORMAL
-        ws.cell(row=current_row, column=3).border = self.BORDER_ALL
-        ws.cell(row=current_row, column=3).alignment = self.ALIGN_CENTER
+        # Calcular total dos serviços
+        total_amount = sum(item.get('final', 0) for item in line_items)
 
-        ws.cell(row=current_row, column=4).value = "£871.63"
-        ws.cell(row=current_row, column=4).font = self.FONT_NORMAL
-        ws.cell(row=current_row, column=4).border = self.BORDER_ALL
-        ws.cell(row=current_row, column=4).alignment = self.ALIGN_RIGHT
+        ws.merge_cells('D24:D26')
+        ws['D24'].value = f"£{total_amount:.2f}"
+        ws['D24'].font = Font(name="Calibri", size=11)
+        ws['D24'].border = self.BORDER_ALL
+        ws['D24'].alignment = Alignment(horizontal='right', vertical='center')
 
-        current_row += 1
+        # Expenses (linha 27 como no template)
+        ws.merge_cells('A27:A29')
+        ws['A27'].value = "Expenses"
+        ws['A27'].font = Font(name="Calibri", size=11)
+        ws['A27'].border = self.BORDER_ALL
+        ws['A27'].alignment = Alignment(vertical='center')
 
-        # Linha vazia
-        for col in range(1, 5):
-            ws.cell(row=current_row, column=col).border = self.BORDER_ALL
-        current_row += 1
+        ws.merge_cells('B27:B29')
+        ws['B27'].value = "N/A"
+        ws['B27'].font = Font(name="Calibri", size=11)
+        ws['B27'].border = self.BORDER_ALL
+        ws['B27'].alignment = Alignment(horizontal='center', vertical='center')
 
-        # Expenses
-        ws.cell(row=current_row, column=1).value = "Expenses"
-        ws.cell(row=current_row, column=1).font = self.FONT_NORMAL
-        ws.cell(row=current_row, column=1).border = self.BORDER_ALL
-
-        ws.cell(row=current_row, column=2).value = "N/A"
-        ws.cell(row=current_row, column=2).font = self.FONT_NORMAL
-        ws.cell(row=current_row, column=2).border = self.BORDER_ALL
-        ws.cell(row=current_row, column=2).alignment = self.ALIGN_CENTER
-
-        ws.cell(row=current_row, column=3).value = "N/A"
-        ws.cell(row=current_row, column=3).font = self.FONT_NORMAL
-        ws.cell(row=current_row, column=3).border = self.BORDER_ALL
-        ws.cell(row=current_row, column=3).alignment = self.ALIGN_CENTER
+        ws.merge_cells('C27:C29')
+        ws['C27'].value = "N/A"
+        ws['C27'].font = Font(name="Calibri", size=11)
+        ws['C27'].border = self.BORDER_ALL
+        ws['C27'].alignment = Alignment(horizontal='center', vertical='center')
 
         # Expenses vazio como no template
-        ws.cell(row=current_row, column=4).border = self.BORDER_ALL
+        ws.merge_cells('D27:D29')
+        ws['D27'].border = self.BORDER_ALL
 
-        current_row += 1
+        # Total amount payable (linha 30 como no template)
+        ws.merge_cells('A30:C32')
+        ws['A30'].value = "Total amount payable"
+        ws['A30'].font = Font(name="Calibri", size=11, bold=True)
+        ws['A30'].border = self.BORDER_ALL
+        ws['A30'].alignment = Alignment(vertical='center')
 
-        # Linha vazia
-        for col in range(1, 5):
-            ws.cell(row=current_row, column=col).border = self.BORDER_ALL
-        current_row += 1
+        ws.merge_cells('D30:D32')
+        ws['D30'].value = f"£{total_amount:.2f}"
+        ws['D30'].font = Font(name="Calibri", size=11, bold=True)
+        ws['D30'].border = self.BORDER_ALL
+        ws['D30'].alignment = Alignment(horizontal='right', vertical='center')
 
-        # Total amount payable
-        ws.merge_cells(f'A{current_row}:C{current_row}')
-        ws.cell(row=current_row, column=1).value = "Total amount payable"
-        ws.cell(row=current_row, column=1).font = self.FONT_BOLD
-        ws.cell(row=current_row, column=1).border = self.BORDER_ALL
+    def _create_exact_corporate_account_details(self, ws):
+        """Cria seção Corporate Account details nas posições exatas do template"""
 
-        ws.cell(row=current_row, column=4).value = "£871.63"
-        ws.cell(row=current_row, column=4).font = self.FONT_BOLD
-        ws.cell(row=current_row, column=4).border = self.BORDER_ALL
-        ws.cell(row=current_row, column=4).alignment = self.ALIGN_RIGHT
+        # Cabeçalho (linha 43 como no template)
+        ws.merge_cells('A43:D43')
+        ws['A43'].value = "Corporate Account details"
+        ws['A43'].font = Font(name="Calibri", size=11, bold=True)
+        ws['A43'].border = self.BORDER_ALL
+        ws['A43'].alignment = Alignment(horizontal='center', vertical='center')
 
-    def _create_corporate_account_details(self, ws):
-        """Cria seção Corporate Account details"""
-
-        # Cabeçalho (linha 28)
-        ws.merge_cells('A28:D28')
-        ws['A28'].value = "Corporate Account details"
-        ws['A28'].font = self.FONT_BOLD
-        ws['A28'].border = self.BORDER_ALL
-        ws['A28'].alignment = self.ALIGN_CENTER
-
-        # Dados da conta (linhas 29-35)
+        # Dados da conta (linhas 44-50 como no template)
         account_data = [
             ("Account Name", "ABZ Group SAS"),
             ("Account Number", "92997116"),
@@ -255,17 +287,19 @@ class InvoiceProfessionalGenerator:
             ("Mandatory payment reference", "GB880802269")
         ]
 
-        for i, (label, value) in enumerate(account_data, 29):
+        for i, (label, value) in enumerate(account_data, 44):
             # Label na coluna A
             ws.cell(row=i, column=1).value = label
-            ws.cell(row=i, column=1).font = self.FONT_NORMAL
+            ws.cell(row=i, column=1).font = Font(name="Calibri", size=11)
             ws.cell(row=i, column=1).border = self.BORDER_ALL
+            ws.cell(row=i, column=1).alignment = Alignment(vertical='center')
 
-            # Value nas colunas B-D (merged)
+            # Value nas colunas B-D (merged como no template)
             ws.merge_cells(f'B{i}:D{i}')
             ws.cell(row=i, column=2).value = value
-            ws.cell(row=i, column=2).font = self.FONT_NORMAL
+            ws.cell(row=i, column=2).font = Font(name="Calibri", size=11)
             ws.cell(row=i, column=2).border = self.BORDER_ALL
+            ws.cell(row=i, column=2).alignment = Alignment(vertical='center')
 
     def _add_company_header(self, ws, start_row: int) -> int:
         """Adiciona cabeçalho da empresa"""
