@@ -334,47 +334,67 @@ class TemplateBasedInvoiceGenerator:
             print(f"⚠️  Erro ao formatar Corporate Account Details: {e}")
 
     def _preserve_template_fonts(self, ws: Worksheet):
-        """Garante que as fontes do template original sejam preservadas"""
+        """Aplica fonte Calibri em toda a invoice para melhor legibilidade e estética"""
         try:
-            # Como estamos copiando o template original, as fontes já devem estar preservadas
-            # Esta função serve como verificação e correção se necessário
-
-            # Verificar se alguma célula perdeu a fonte original
-            # (isso pode acontecer quando definimos novos valores)
-
-            # Células que podem ter perdido formatação ao serem preenchidas
-            cells_to_check = [
-                ('C12', 'Calibri', 12.0, True),   # Data da invoice
-                ('C13', 'Calibri', 12.0, True),   # Número da invoice
-                ('C14', 'Calibri', 12.0, False),  # Call-off
-            ]
-
             from openpyxl.styles import Font
 
-            for cell_ref, font_name, font_size, is_bold in cells_to_check:
-                cell = ws[cell_ref]
-                if cell.value:  # Só aplicar se a célula tiver conteúdo
-                    current_font = cell.font
+            print("🔤 Aplicando fonte Calibri em toda a invoice...")
 
-                    # Verificar se precisa corrigir a fonte
-                    needs_fix = (
-                        current_font.name != font_name or
-                        current_font.size != font_size or
-                        current_font.bold != is_bold
-                    )
+            # Definir fonte Calibri padrão
+            calibri_font = Font(name='Calibri', size=11)
+            calibri_font_bold = Font(name='Calibri', size=11, bold=True)
+            calibri_font_title = Font(name='Calibri', size=14, bold=True)
+            calibri_font_header = Font(name='Calibri', size=12, bold=True)
+            calibri_font_small = Font(name='Calibri', size=10)
 
-                    if needs_fix:
-                        cell.font = Font(
-                            name=font_name,
-                            size=font_size,
-                            bold=is_bold
-                        )
-                        print(f"  🔧 Fonte corrigida em {cell_ref}: {font_name} {font_size}pt {'Bold' if is_bold else 'Normal'}")
+            # Aplicar fonte Calibri em toda a planilha
+            for row in ws.iter_rows():
+                for cell in row:
+                    if cell.value is not None:
+                        # Determinar o tipo de célula e aplicar fonte apropriada
+                        cell_ref = f"{cell.column_letter}{cell.row}"
 
-            print("✅ Fontes do template preservadas")
+                        # Título principal (A7)
+                        if cell_ref == 'A7':
+                            cell.font = calibri_font_title
+                            print(f"  📝 {cell_ref}: Título - Calibri 14pt Bold")
+
+                        # Cabeçalhos importantes (C12, C13, C14)
+                        elif cell_ref in ['C12', 'C13', 'C14']:
+                            cell.font = calibri_font_header
+                            print(f"  📋 {cell_ref}: Cabeçalho - Calibri 12pt Bold")
+
+                        # Cabeçalhos da tabela de serviços (linha 16)
+                        elif cell.row == 16:
+                            cell.font = calibri_font_bold
+                            print(f"  📊 {cell_ref}: Cabeçalho tabela - Calibri 11pt Bold")
+
+                        # Área de serviços (linhas 18-29)
+                        elif 18 <= cell.row <= 29:
+                            cell.font = calibri_font
+                            print(f"  🔧 {cell_ref}: Serviços - Calibri 11pt")
+
+                        # Total (linha 30)
+                        elif cell.row == 30:
+                            cell.font = calibri_font_bold
+                            print(f"  💰 {cell_ref}: Total - Calibri 11pt Bold")
+
+                        # Corporate Account Details (linhas 43-50)
+                        elif 43 <= cell.row <= 50:
+                            cell.font = calibri_font_small
+                            print(f"  🏦 {cell_ref}: Corporate Details - Calibri 10pt")
+
+                        # Outras células importantes
+                        else:
+                            # Verificar se é uma célula com texto importante
+                            if isinstance(cell.value, str) and len(str(cell.value).strip()) > 0:
+                                cell.font = calibri_font
+                                print(f"  📄 {cell_ref}: Geral - Calibri 11pt")
+
+            print("✅ Fonte Calibri aplicada em toda a invoice para melhor legibilidade")
 
         except Exception as e:
-            print(f"⚠️  Erro ao preservar fontes: {e}")
+            print(f"⚠️  Erro ao aplicar fontes Calibri: {e}")
     
     def validate_template(self) -> bool:
         """Valida se o template tem a estrutura esperada"""

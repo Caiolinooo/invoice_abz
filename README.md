@@ -2,12 +2,14 @@
 
 Sistema avançado de geração de invoices individuais baseado em templates, desenvolvido para automatizar a criação de faturas profissionais a partir de dados de folha de pagamento e medições.
 
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/Caiolinooo/invoice_abz/releases)
+[![Version](https://img.shields.io/badge/version-8.0.0-blue.svg)](https://github.com/Caiolinooo/invoice_abz/releases)
 [![Python](https://img.shields.io/badge/python-3.10+-green.svg)](https://python.org)
-[![License](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-Proprietary-red.svg)](LICENSE)
 
-## 🚀 Novidades da Versão 2.0
+## 🚀 Novidades da Versão 8.0
 
+- **🔤 Fonte Calibri Universal**: Toda a invoice usa fonte Calibri para máxima legibilidade e estética
+- **📖 Tipografia Profissional**: Diferentes tamanhos de Calibri para hierarquia visual perfeita
 - **🎨 Sistema Template-Based**: Geração baseada no `Template_Invoice_Geral.xlsx`
 - **📞 Call-off Integrado**: Aparece no cabeçalho e nas descrições dos serviços
 - **📁 Nomes Padronizados**: Arquivos incluem nome do colaborador automaticamente
@@ -46,6 +48,16 @@ Sistema profissional de geração de invoices que transforma dados de folha de p
 - Baseado no `Template_Invoice_Geral.xlsx` fornecido
 - Preservação completa de formatação, bordas e imagens
 - Layout profissional em uma única página
+
+### 🔤 Sistema de Fontes Calibri
+- **Fonte Universal**: Toda a invoice usa exclusivamente Calibri
+- **Hierarquia Visual**: Diferentes tamanhos para melhor organização
+  - Título: Calibri 14pt Bold
+  - Cabeçalhos: Calibri 12pt Bold
+  - Conteúdo: Calibri 11pt
+  - Detalhes: Calibri 10pt
+- **Legibilidade Máxima**: Fonte otimizada para leitura e impressão
+- **Estética Profissional**: Aparência consistente e corporativa
 
 ### 📞 Call-off Integration
 - Aparece no cabeçalho da invoice (C14)

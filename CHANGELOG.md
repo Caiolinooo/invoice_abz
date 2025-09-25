@@ -5,6 +5,38 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.0.0] - 2025-01-17
+
+### 🔤 Typography Enhancement - Fonte Calibri Universal
+
+#### Added
+- **Sistema de Fontes Calibri**: Aplicação universal da fonte Calibri em toda a invoice
+- **Hierarquia Tipográfica**: Diferentes tamanhos de Calibri para organização visual
+  - Título principal: Calibri 14pt Bold (A7)
+  - Cabeçalhos importantes: Calibri 12pt Bold (C12, C13, C14)
+  - Cabeçalhos de tabela: Calibri 11pt Bold (linha 16)
+  - Conteúdo geral: Calibri 11pt (serviços, totais)
+  - Detalhes corporativos: Calibri 10pt (linhas 43-50)
+- **Legibilidade Otimizada**: Fonte escolhida para máxima legibilidade em tela e impressão
+- **Estética Profissional**: Aparência consistente e corporativa em toda a invoice
+
+#### Changed
+- **Sistema de Preservação de Fontes**: Migrado de preservação do template para aplicação ativa de Calibri
+- **Método `_preserve_template_fonts()`**: Completamente reescrito para aplicar Calibri universalmente
+- **Validação de Fontes**: 100% das células com conteúdo agora usam Calibri
+
+#### Technical Implementation
+- Aplicação automática de fonte Calibri em todas as células com conteúdo
+- Sistema inteligente de detecção de tipo de célula para aplicar tamanho apropriado
+- Validação completa garantindo 100% de conformidade com Calibri
+- Teste abrangente `test_calibri_fonts.py` para verificação de qualidade
+
+#### Benefits
+- **Legibilidade Superior**: Calibri é otimizada para leitura digital e impressa
+- **Consistência Visual**: Toda a invoice mantém aparência uniforme
+- **Profissionalismo**: Fonte corporativa padrão da Microsoft Office
+- **Compatibilidade**: Disponível em todos os sistemas Windows por padrão
+
 ## [2.0.0] - 2025-01-16
 
 ### 🎉 Major Release - Template-Based Invoice System
