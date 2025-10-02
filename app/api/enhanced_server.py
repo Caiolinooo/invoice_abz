@@ -42,7 +42,7 @@ try:
     from app.utils.anfin_parser import extract_individual_totals, extract_costs_gbp
     from app.utils.excel_abz_template import get_invoice_meta
     from app.invoice.template_filler import generate_from_abz_template
-    from app.utils.libreoffice_export import xlsx_to_pdf, ensure_libreoffice
+    from app.utils.libreoffice_export import xlsx_to_pdf, ensure_libreoffice, find_soffice
 except ModuleNotFoundError:
     from utils.abz_charge_rate_parser import read_charge_rate_table
     from utils.anfin_parser import extract_individual_totals, extract_costs_gbp
