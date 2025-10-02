@@ -1260,12 +1260,27 @@ async def reset_database(db: Session = Depends(get_db)):
     try:
         import shutil
         from pathlib import Path
+        import time
+        import gc
 
         # Close the current database connection
         db.close()
 
+        # Force close all connections in the pool
+        try:
+            from app.database.database import engine
+            engine.dispose()
+            print("🔌 Database engine disposed")
+        except Exception as e:
+            print(f"⚠️ Warning disposing engine: {e}")
+
+        # Force garbage collection to release file handles
+        gc.collect()
+        time.sleep(0.5)  # Give OS time to release file handles
+
         # Path to the database file
         db_path = Path("data/invoice_system.db")
+        backup_path = None
 
         if db_path.exists():
             # Backup the old database
@@ -1273,9 +1288,23 @@ async def reset_database(db: Session = Depends(get_db)):
             shutil.copy(db_path, backup_path)
             print(f"📦 Database backed up to: {backup_path}")
 
-            # Delete the database file
-            db_path.unlink()
-            print(f"🗑️ Database deleted: {db_path}")
+            # Try to delete the database file with retries
+            max_retries = 5
+            for attempt in range(max_retries):
+                try:
+                    db_path.unlink()
+                    print(f"🗑️ Database deleted: {db_path}")
+                    break
+                except PermissionError as e:
+                    if attempt < max_retries - 1:
+                        print(f"⏳ Retry {attempt + 1}/{max_retries} - waiting for file release...")
+                        time.sleep(1)
+                        gc.collect()
+                    else:
+                        raise HTTPException(
+                            status_code=500,
+                            detail="Database is locked. Please stop the server, delete the file manually, and restart."
+                        )
 
         # Reinitialize the database
         init_database()
@@ -1284,11 +1313,15 @@ async def reset_database(db: Session = Depends(get_db)):
         return {
             "success": True,
             "message": "Database reset successfully",
-            "backup": str(backup_path) if db_path.exists() else None
+            "backup": str(backup_path) if backup_path else None
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"❌ Failed to reset database: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
             status_code=500,
             detail=f"Failed to reset database: {str(e)}"
