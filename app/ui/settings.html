@@ -588,6 +588,21 @@
                         This action will permanently delete all invoices, sessions, and reset the invoice numbering sequence. This cannot be undone.
                     </p>
 
+                    <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 1rem; margin: 1rem 0;">
+                        <div style="display: flex; align-items: start; gap: 0.5rem;">
+                            <span class="material-icons" style="color: #856404;">info</span>
+                            <div style="flex: 1;">
+                                <strong style="color: #856404;">Recommended Method (Windows):</strong>
+                                <p style="margin: 0.5rem 0 0 0; color: #856404; font-size: 0.9rem;">
+                                    If the reset fails due to file locking, use the offline script:<br>
+                                    1. Stop the server (Ctrl+C)<br>
+                                    2. Run: <code style="background: #fff; padding: 2px 6px; border-radius: 3px;">python reset_database.py</code><br>
+                                    3. Restart the server
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-group" style="max-width: 300px;">
                         <label class="form-label" data-i18n="password_required">Password Required</label>
                         <input type="password" class="form-input" id="resetPassword" placeholder="Enter password to confirm">

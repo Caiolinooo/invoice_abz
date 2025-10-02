@@ -262,7 +262,23 @@ async function resetDatabase() {
 
     } catch (error) {
         console.error('Error resetting database:', error);
-        showAlert('error', 'Failed to reset database: ' + error.message);
+
+        // Check if it's a file locking error
+        const errorMsg = error.message || '';
+        if (errorMsg.includes('WinError 32') || errorMsg.includes('being used by another process') || errorMsg.includes('locked')) {
+            showAlert('error', `
+                <strong>❌ Database is locked by the server</strong><br><br>
+                <strong>Solution: Use the offline reset script</strong><br><br>
+                <strong>Steps:</strong><br>
+                1. Stop the server (Ctrl+C in terminal)<br>
+                2. Run: <code>python reset_database.py</code><br>
+                3. Follow the prompts<br>
+                4. Restart the server<br><br>
+                <em>This is the recommended method for Windows.</em>
+            `);
+        } else {
+            showAlert('error', 'Failed to reset database: ' + error.message);
+        }
     }
 }
 

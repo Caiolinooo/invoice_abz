@@ -1256,76 +1256,79 @@ async def install_libreoffice_endpoint():
 
 @app.post("/api/reset-database")
 async def reset_database(db: Session = Depends(get_db)):
-    """Reset the database (delete all data and recreate tables)"""
+    """
+    Reset the database by truncating all tables instead of deleting the file.
+    This avoids Windows file locking issues.
+    """
     try:
-        import shutil
         from pathlib import Path
-        import time
-        import gc
+        import shutil
+        from datetime import datetime
 
         # Close the current database connection
         db.close()
 
-        # Force close all connections in the pool
-        try:
-            from app.database.database import engine
-            engine.dispose()
-            print("🔌 Database engine disposed")
-        except Exception as e:
-            print(f"⚠️ Warning disposing engine: {e}")
-
-        # Force garbage collection to release file handles
-        gc.collect()
-        time.sleep(0.5)  # Give OS time to release file handles
-
-        # Path to the database file
+        # Create backup first
         db_path = Path("data/invoice_system.db")
         backup_path = None
 
         if db_path.exists():
-            # Backup the old database
             backup_path = Path(f"data/invoice_system_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db")
             shutil.copy(db_path, backup_path)
             print(f"📦 Database backed up to: {backup_path}")
 
-            # Try to delete the database file with retries
-            max_retries = 5
-            for attempt in range(max_retries):
-                try:
-                    db_path.unlink()
-                    print(f"🗑️ Database deleted: {db_path}")
-                    break
-                except PermissionError as e:
-                    if attempt < max_retries - 1:
-                        print(f"⏳ Retry {attempt + 1}/{max_retries} - waiting for file release...")
-                        time.sleep(1)
-                        gc.collect()
-                    else:
-                        raise HTTPException(
-                            status_code=500,
-                            detail="Database is locked. Please stop the server, delete the file manually, and restart."
-                        )
+        # Instead of deleting the file, truncate all tables
+        from app.database.database import SessionLocal, engine
+        from app.database.models import Base
 
-        # Reinitialize the database
+        # Drop all tables
+        print("🗑️ Dropping all tables...")
+        Base.metadata.drop_all(bind=engine)
+
+        # Recreate all tables
+        print("🔨 Creating all tables...")
+        Base.metadata.create_all(bind=engine)
+
+        # Reinitialize with default data
+        print("📝 Initializing default data...")
+        from app.database.database import init_database
         init_database()
-        print("✅ Database reinitialized successfully")
+
+        print("✅ Database reset successfully")
 
         return {
             "success": True,
-            "message": "Database reset successfully",
-            "backup": str(backup_path) if backup_path else None
+            "message": "Database reset successfully. All data has been cleared and tables recreated.",
+            "backup": str(backup_path) if backup_path else None,
+            "note": "The database file was not deleted, only the data was cleared. This avoids file locking issues."
         }
 
-    except HTTPException:
-        raise
     except Exception as e:
         print(f"❌ Failed to reset database: {e}")
         import traceback
         traceback.print_exc()
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to reset database: {str(e)}"
-        )
+
+        # Provide helpful error message
+        error_msg = str(e)
+        if "WinError 32" in error_msg or "being used by another process" in error_msg:
+            raise HTTPException(
+                status_code=500,
+                detail={
+                    "error": "Database is locked by the server process",
+                    "solution": "Use the offline reset script instead",
+                    "instructions": [
+                        "1. Stop the server (Ctrl+C)",
+                        "2. Run: python reset_database.py",
+                        "3. Follow the prompts",
+                        "4. Restart the server"
+                    ]
+                }
+            )
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to reset database: {error_msg}"
+            )
 
 
 if __name__ == "__main__":
