@@ -2,21 +2,39 @@
 
 Sistema avançado de geração de invoices individuais com banco de dados, autenticação e diagnóstico de sistema, desenvolvido para automatizar a criação de faturas profissionais a partir de dados de folha de pagamento e medições.
 
-[![Version](https://img.shields.io/badge/version-9.0.0-blue.svg)](https://github.com/Caiolinooo/invoice_abz/releases)
+[![Version](https://img.shields.io/badge/version-11.3.0-blue.svg)](https://github.com/Caiolinooo/invoice_abz/releases)
 [![Python](https://img.shields.io/badge/python-3.10+-green.svg)](https://python.org)
 [![License](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 [![Database](https://img.shields.io/badge/database-SQLite-orange.svg)](https://sqlite.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com)
 
-## 🚀 Novidades da Versão 9.0
+## 🚀 Novidades da Versão 11.3 (Atual)
 
-- **🗄️ Banco de Dados SQLite**: Persistência completa de dados
-- **🔐 Sistema de Autenticação**: Login/logout com JWT tokens
-- **📊 Histórico de Invoices**: Visualização e busca de invoices geradas
-- **⚙️ Página de Configurações**: Gerenciamento centralizado
-- **🔧 Diagnóstico de Sistema**: Verificação e instalação do LibreOffice
+### v11.3.0 - Database Integration & System Diagnostics
+- **🗄️ Integração Completa SQLite**: Persistência de invoices, sessions, audit logs
+- **🔧 Sistema de Diagnóstico**: Verificação e instalação automática do LibreOffice
+- **📄 Geração de PDF Corrigida**: Conversão automática XLSX → PDF com validação
+- **📁 Gerenciamento de Arquivos**: Endpoint para listar XLSX e PDF por sessão
+- **🔄 Reset de Banco**: Endpoint com backup automático antes do reset
 - **🐛 Correções Críticas**: Invoice number NULL, PDFs não gerados, endpoints faltando
-- **📝 Documentação Completa**: Guias de instalação e troubleshooting
+
+### v11.2.0 - Login System Fix
+- **🔐 Login Corrigido**: Autenticação com bcrypt diretamente na tabela users_unified
+- **✅ Compatibilidade**: Sistema funciona igual ao Employee Hub
+
+### v11.1.0 - Expenses Correction
+- **💰 Expenses Corrigidos**: Valores sempre vêm da planilha (sem £20 fictício)
+- **🧹 Validação Rigorosa**: Fallback problemático desabilitado
+
+### v11.0.0 - Preview System Fixes
+- **🎯 Preview Corrigido**: Dados sempre da planilha, sem demonstração
+- **🧹 Limpeza Automática**: Cache e sessões antigas removidas
+
+### v10.0.0 - Supabase Integration
+- **🔐 Autenticação JWT**: Integração com Supabase do Employee Hub
+- **🛡️ RBAC**: Apenas Admin e Gerente podem acessar
+- **🚦 Rate Limiting**: Proteção contra brute force
+- **📊 Audit Logging**: Registro completo de acessos
 
 ## 📋 Sumário
 

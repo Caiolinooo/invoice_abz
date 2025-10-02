@@ -68,7 +68,13 @@ def start_api_server():
 
     try:
         import uvicorn
-        from app.api.server import app as fastapi_app
+        # Try to import enhanced server first, fallback to original
+        try:
+            from app.api.enhanced_server import app as fastapi_app
+            print("✓ Using enhanced server with database integration")
+        except ImportError:
+            from app.api.server import app as fastapi_app
+            print("⚠️ Falling back to original server")
         from server_config import get_config, ensure_required_directories, validate_environment
 
         # Validate environment
