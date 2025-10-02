@@ -88,9 +88,15 @@ def xlsx_to_pdf(xlsx_path: Path, out_pdf_path: Path, soffice_path: Optional[str]
 
     soffice = find_soffice(soffice_path)
     if not soffice:
-        raise RuntimeError(
-            "LibreOffice 'soffice' not found. Install LibreOffice and/or set LIBREOFFICE_PATH env var."
+        error_msg = (
+            "LibreOffice 'soffice' not found. Install LibreOffice and/or set LIBREOFFICE_PATH env var.\n"
+            "Visit http://localhost:8000/ui/system-check.html for installation instructions."
         )
+        print(f"❌ {error_msg}")
+        raise RuntimeError(error_msg)
+
+    print(f"🔄 Converting XLSX to PDF using LibreOffice: {xlsx_path.name}")
+    print(f"   LibreOffice path: {soffice}")
 
     # Convert in the output directory; LibreOffice writes to the folder, keeping base name
     cmd = [
@@ -104,17 +110,43 @@ def xlsx_to_pdf(xlsx_path: Path, out_pdf_path: Path, soffice_path: Optional[str]
         str(out_pdf_path.parent),
         str(xlsx_path.resolve()),
     ]
-    subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    try:
+        result = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=30)
+        if result.stdout:
+            print(f"   LibreOffice stdout: {result.stdout.decode('utf-8', errors='ignore')}")
+        if result.stderr:
+            print(f"   LibreOffice stderr: {result.stderr.decode('utf-8', errors='ignore')}")
+    except subprocess.TimeoutExpired:
+        print(f"⚠️ LibreOffice conversion timeout for {xlsx_path.name}")
+        raise RuntimeError(f"PDF conversion timeout for {xlsx_path.name}")
+    except subprocess.CalledProcessError as e:
+        print(f"❌ LibreOffice conversion failed for {xlsx_path.name}")
+        print(f"   Return code: {e.returncode}")
+        print(f"   stdout: {e.stdout.decode('utf-8', errors='ignore') if e.stdout else 'N/A'}")
+        print(f"   stderr: {e.stderr.decode('utf-8', errors='ignore') if e.stderr else 'N/A'}")
+        raise
 
     # LibreOffice names the PDF with the same base name as XLSX
     produced = out_pdf_path.parent / (xlsx_path.stem + ".pdf")
+
+    if not produced.exists():
+        print(f"❌ PDF was not created by LibreOffice: {produced}")
+        raise RuntimeError(f"LibreOffice did not create PDF: {produced}")
+
+    print(f"✅ PDF created: {produced}")
+
     if produced != out_pdf_path:
         try:
             if out_pdf_path.exists():
                 out_pdf_path.unlink()
             produced.rename(out_pdf_path)
-        except Exception:
+            print(f"✅ PDF renamed to: {out_pdf_path}")
+        except Exception as e:
+            print(f"⚠️ Failed to rename, copying instead: {e}")
             # fallback: copy
             import shutil as _sh
             _sh.copyfile(produced, out_pdf_path)
+            print(f"✅ PDF copied to: {out_pdf_path}")
+
     return out_pdf_path

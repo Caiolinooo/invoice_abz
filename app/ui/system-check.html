@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico do Sistema - Invoice System</title>
+    <link rel="stylesheet" href="styles/common.css">
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .status-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #6c757d;
+        }
+
+        .status-card.success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+
+        .status-card.error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .status-card.warning {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+
+        .status-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-icon {
+            font-size: 24px;
+        }
+
+        .status-details {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .status-details div {
+            margin: 5px 0;
+        }
+
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #0056b3;
+        }
+
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Voltar para o início</a>
+        
+        <h1>🔧 Diagnóstico do Sistema</h1>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Verificando sistema...</p>
+        </div>
+
+        <div id="status-container" style="display: none;">
+            <!-- Status cards will be inserted here -->
+        </div>
+    </div>
+
+    <script>
+        async function checkSystemStatus() {
+            try {
+                const response = await fetch('/api/system/libreoffice-status');
+                const data = await response.json();
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('status-container').style.display = 'block';
+                
+                displayStatus(data);
+            } catch (error) {
+                document.getElementById('loading').innerHTML = `
+                    <div class="status-card error">
+                        <div class="status-title">
+                            <span class="status-icon">❌</span>
+                            Erro ao verificar sistema
+                        </div>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displayStatus(data) {
+            const container = document.getElementById('status-container');
+            
+            // LibreOffice Status
+            const libreOfficeCard = document.createElement('div');
+            libreOfficeCard.className = `status-card ${data.installed ? 'success' : 'error'}`;
+            
+            let installButton = '';
+            if (!data.installed && data.platform === 'Windows') {
+                installButton = `
+                    <button class="btn btn-success" onclick="installLibreOffice()">
+                        📥 Instalar LibreOffice
+                    </button>
+                `;
+            } else if (!data.installed) {
+                installButton = `
+                    <p style="margin-top: 10px;">
+                        <strong>Instalação manual necessária:</strong><br>
+                        Baixe e instale o LibreOffice em: 
+                        <a href="https://www.libreoffice.org/download/download/" target="_blank">
+                            https://www.libreoffice.org/download/download/
+                        </a>
+                    </p>
+                `;
+            }
+            
+            libreOfficeCard.innerHTML = `
+                <div class="status-title">
+                    <span class="status-icon">${data.installed ? '✅' : '❌'}</span>
+                    LibreOffice
+                </div>
+                <div class="status-details">
+                    <div><strong>Status:</strong> ${data.installed ? 'Instalado' : 'Não instalado'}</div>
+                    ${data.path ? `<div><strong>Caminho:</strong> ${data.path}</div>` : ''}
+                    ${data.version ? `<div><strong>Versão:</strong> ${data.version}</div>` : ''}
+                    ${data.version_error ? `<div><strong>Erro ao obter versão:</strong> ${data.version_error}</div>` : ''}
+                </div>
+                ${installButton}
+            `;
+            container.appendChild(libreOfficeCard);
+            
+            // Platform Info
+            const platformCard = document.createElement('div');
+            platformCard.className = 'status-card';
+            platformCard.innerHTML = `
+                <div class="status-title">
+                    <span class="status-icon">💻</span>
+                    Informações da Plataforma
+                </div>
+                <div class="status-details">
+                    <div><strong>Sistema Operacional:</strong> ${data.platform}</div>
+                    <div><strong>Winget disponível:</strong> ${data.winget_available ? 'Sim' : 'Não'}</div>
+                    <div><strong>Chocolatey disponível:</strong> ${data.choco_available ? 'Sim' : 'Não'}</div>
+                </div>
+            `;
+            container.appendChild(platformCard);
+            
+            // PDF Generation Status
+            const pdfCard = document.createElement('div');
+            pdfCard.className = `status-card ${data.installed ? 'success' : 'warning'}`;
+            pdfCard.innerHTML = `
+                <div class="status-title">
+                    <span class="status-icon">${data.installed ? '✅' : '⚠️'}</span>
+                    Geração de PDFs
+                </div>
+                <p>${data.installed 
+                    ? 'PDFs podem ser gerados normalmente' 
+                    : 'PDFs NÃO podem ser gerados. Instale o LibreOffice para habilitar esta funcionalidade.'
+                }</p>
+            `;
+            container.appendChild(pdfCard);
+        }
+
+        async function installLibreOffice() {
+            const button = event.target;
+            button.disabled = true;
+            button.textContent = '⏳ Instalando...';
+            
+            try {
+                const response = await fetch('/api/system/install-libreoffice', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ LibreOffice instalado com sucesso! Recarregando página...');
+                    location.reload();
+                } else {
+                    alert('❌ ' + data.message);
+                    button.disabled = false;
+                    button.textContent = '📥 Instalar LibreOffice';
+                }
+            } catch (error) {
+                alert('❌ Erro ao instalar: ' + error.message);
+                button.disabled = false;
+                button.textContent = '📥 Instalar LibreOffice';
+            }
+        }
+
+        // Check status on page load
+        checkSystemStatus();
+    </script>
+</body>
+</html>
+
