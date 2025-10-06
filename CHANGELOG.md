@@ -5,6 +5,47 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.1] - 2025-01-06
+
+### 🎯 Feature - Billing Period in Filenames
+
+#### Added
+- **Billing Period Extraction from ABZ Filename**
+  - New function `extract_period_from_abz_filename()` to extract MM.YYYY from ABZ filename
+  - Supports multiple formats: `MM.YYYY`, `MM YYYY`, `MM-YYYY`, `YYYY-MM`, `YYYY.MM`
+  - Intelligent pattern matching for various filename conventions
+
+#### Changed
+- **Filename Generation Logic**
+  - Invoice filenames now use **billing period** from ABZ filename instead of invoice emission date
+  - Format: `ABZ Group {invoice_no}-{year} {client} {month} {year} {first_name}.{extension}`
+  - Example: `ABZ Group 141-2025 OMEGA 08 2025 Caio.xlsx`
+    - `08 2025` = Billing period from ABZ filename (e.g., "ABZ - OMEGA - Charge Rates 08.2025.xlsx")
+    - NOT the invoice emission date (e.g., 15/01/2025)
+
+#### Benefits
+- **Clarity**: Filenames clearly indicate which billing period the invoice covers
+- **Organization**: Easier to organize invoices by billing period
+- **Accuracy**: No confusion between emission date and billing period
+- **Backward Compatibility**: Falls back to invoice date if ABZ path not available
+
+#### Technical Details
+- **Files Modified**:
+  - `app/utils/filename_standardizer.py` - Core implementation
+  - `BILLING_PERIOD_VS_INVOICE_DATE.md` - Comprehensive documentation
+
+- **Example Scenario**:
+  - ABZ File: `ABZ - OMEGA - Maximus Project - Monthly Charge Rates 08.2025.xlsx`
+  - Invoice Emission Date: `15/01/2025` (January)
+  - Generated Filename: `ABZ Group 141-2025 OMEGA 08 2025 Caio.xlsx`
+  - **Result**: Uses `08/2025` from ABZ filename, NOT `01/2025` from emission date
+
+#### Testing
+- ✅ All test cases passing
+- ✅ Period extraction from various filename formats
+- ✅ Complete filename generation with billing period
+- ✅ Fallback behavior when ABZ path not available
+
 ## [12.0] - 2025-01-06
 
 ### 🎉 Major Release - Expenses Management & Auto-Install
