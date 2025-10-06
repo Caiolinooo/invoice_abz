@@ -5,6 +5,89 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.0] - 2025-01-06
+
+### 🎉 Major Release - Expenses Management & Auto-Install
+
+#### Added
+- **Expenses Override System**
+  - Override fields for Brazilian Payroll Additional
+  - Override fields for Expenses
+  - Real-time preview updates when overriding values
+  - Per-employee override capability
+  - Bilingual support (PT/EN) for new fields
+
+- **AN-FIN File Upload (Optional)**
+  - New upload field for AN-FIN file in UI
+  - Intelligent fallback system: AN-FIN → ABZ → £0.00
+  - Expenses priority: AN-FIN (most accurate) > ABZ (fallback)
+  - Clear UI messages about optional nature
+  - Automatic detection and processing
+
+- **Auto-Install Dependencies**
+  - Automatic dependency installation on startup
+  - Tries requirements.txt first (faster batch install)
+  - Falls back to individual package installation
+  - No more manual pip install needed
+  - Smart timeout handling (5min for requirements.txt, 2min per package)
+  - Clear progress messages during installation
+
+- **Enhanced Server Startup Script (run_server.py)**
+  - Complete pre-flight checks before starting
+  - Verifies Python version (3.8+ required)
+  - Checks all dependencies
+  - Verifies LibreOffice installation
+  - Validates .env file
+  - Checks database connectivity
+  - Creates missing directories automatically
+  - Beautiful, informative console output with emojis
+
+#### Fixed
+- **Critical: Expenses Not Showing in Preview**
+  - Root Cause: `aggregate_employee()` was modified to exclude expenses
+  - Fix: Restored expenses support in aggregator with type 'expenses'
+  - Result: Expenses now appear correctly from ABZ or AN-FIN
+  - Added detailed debug logging
+
+- **Database Module Path Error**
+  - Root Cause: Wrong import path (app.api.database vs app.database.database)
+  - Fix: Corrected import path and added existence check
+  - Result: Database initializes correctly without blocking server
+
+#### Changed
+- Updated expense extraction logic to use aggregator data
+- Improved error messages and user feedback
+- Enhanced logging for troubleshooting
+- Better handling of missing dependencies
+
+#### Documentation
+- Added AUTO_INSTALL_DEPENDENCIES.md
+- Added EXPENSES_ADDITIONAL_OVERRIDE_IMPLEMENTATION.md
+- Added EXPENSES_FALLBACK_SUMMARY.md
+- Added FINAL_FIX_EXPENSES_AND_SERVER.md
+- Added FIX_EXPENSES_UPLOAD.md
+
+#### Technical Details
+- **Files Modified**:
+  - Frontend: app/ui/index.html, app/ui/i18n.js, app/ui/app.js
+  - Backend: app/api/server.py, app/utils/abz_charge_rate_parser.py
+  - Infrastructure: run_server.py (complete rewrite)
+- **Breaking Changes**: None - Fully backward compatible
+- **Performance**: Faster startup with requirements.txt batch install
+- **Testing**: ABZ only, ABZ + AN-FIN, Override functionality, Auto-install
+
+## [11.4] - 2024-12-XX
+
+### Previous Stable Version
+- Authentication system
+- Rate limiting
+- Audit logging
+- Invoice generation
+- PDF export
+- Template-based system
+- Multi-position employee support
+- Database integration
+
 ## [8.0.0] - 2025-01-17
 
 ### 🔤 Typography Enhancement - Fonte Calibri Universal
