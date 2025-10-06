@@ -2,13 +2,31 @@
 
 Sistema avançado de geração de invoices individuais com banco de dados, autenticação e diagnóstico de sistema, desenvolvido para automatizar a criação de faturas profissionais a partir de dados de folha de pagamento e medições.
 
-[![Version](https://img.shields.io/badge/version-11.3.0-blue.svg)](https://github.com/Caiolinooo/invoice_abz/releases)
+[![Version](https://img.shields.io/badge/version-12.1.0-blue.svg)](https://github.com/Caiolinooo/invoice_abz/releases)
 [![Python](https://img.shields.io/badge/python-3.10+-green.svg)](https://python.org)
 [![License](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 [![Database](https://img.shields.io/badge/database-SQLite-orange.svg)](https://sqlite.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com)
 
-## 🚀 Novidades da Versão 11.3 (Atual)
+## 🚀 Novidades da Versão 12.1 (Atual)
+
+### v12.1.0 - Billing Period in Filenames
+- **📅 Período de Faturamento**: Nomes de arquivo agora usam o período do ABZ (ex: 08.2025)
+- **🎯 Clareza**: Filenames indicam claramente qual período a invoice cobre
+- **📁 Organização**: Mais fácil organizar invoices por período de faturamento
+- **🔄 Compatibilidade**: Fallback para data de emissão se ABZ path não disponível
+- **Exemplo**: `ABZ Group 141-2025 OMEGA 08 2025 Caio.xlsx` (usa 08/2025 do ABZ, não data de emissão)
+
+### v12.0.0 - Expenses Management & Auto-Install
+- **💰 Expenses Override**: Campos para override manual de Additional e Expenses
+- **📁 AN-FIN Upload**: Upload opcional para expenses mais precisos
+- **🚀 Auto-Install**: Instalação automática de dependências no startup
+- **🔍 Enhanced Checks**: Verificações completas antes de iniciar o servidor
+- **🐛 Bug Fixes**: Expenses não aparecendo, database path corrigido
+
+## 🚀 Versões Anteriores
+
+### v11.3.0 - Database Integration & System Diagnostics
 
 ### v11.3.0 - Database Integration & System Diagnostics
 - **🗄️ Integração Completa SQLite**: Persistência de invoices, sessions, audit logs
