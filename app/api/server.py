@@ -1139,23 +1139,27 @@ async def api_session_file(
 
     # Check in both xlsx and pdf directories
     file_path = None
+    media_type = "application/octet-stream"
+
     if filename.endswith('.xlsx'):
         xlsx_path = sdir / "xlsx" / filename
         if xlsx_path.exists():
             file_path = xlsx_path
+            media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     elif filename.endswith('.pdf'):
         pdf_path = sdir / "pdf" / filename
         if pdf_path.exists():
             file_path = pdf_path
+            media_type = "application/pdf"
 
     if not file_path:
         raise HTTPException(404, "file not found")
 
     from fastapi.responses import FileResponse
     return FileResponse(
-        path=file_path,
+        path=str(file_path),
         filename=filename,
-        media_type="application/octet-stream"
+        media_type=media_type
     )
 
 
