@@ -5,6 +5,30 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.1.1] - 2025-01-06
+
+### 🐛 Bug Fix - File Download Extension
+
+#### Fixed
+- **Files Downloading Without Extension**
+  - Problem: Individual file links (XLSX/PDF) were downloading files without extensions
+  - Example: File downloaded as `d339515f-f348-4a0a-b3e8-7040b9fc0808` instead of `Employee_Invoice.xlsx`
+  - Root Cause: Generic `application/octet-stream` media type didn't specify file type
+  - Solution: Set correct media type based on file extension
+    - XLSX: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+    - PDF: `application/pdf`
+
+#### Impact
+- ✅ Files now download with correct extension
+- ✅ Files open automatically in correct application
+- ✅ Better user experience
+- ✅ No manual renaming required
+
+#### Technical Details
+- **Files Modified**: `app/api/server.py` (endpoint `/api/session/{session_id}/file/{filename}`)
+- **Documentation**: `FIX_FILE_DOWNLOAD_EXTENSION.md`
+- **Backward Compatibility**: Fully compatible, no breaking changes
+
 ## [12.1] - 2025-01-06
 
 ### 🎯 Feature - Billing Period in Filenames
