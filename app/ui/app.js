@@ -66,6 +66,7 @@ function setStatus(text, isError = false) {
 // file pick helpers
 function bindFilePickers(){
   const btnA=$('#btnPickAbz'); const inpA=$('#fileAbz'); const nameA=$('#fileAbzName');
+  const btnAnfin=$('#btnPickAnfin'); const inpAnfin=$('#fileAnfin'); const nameAnfin=$('#fileAnfinName');
   const btnImport = $('#btnImport');
 
   if(btnA && inpA && nameA){
@@ -75,10 +76,21 @@ function bindFilePickers(){
       nameA.dataset.fn = fn;
       nameA.textContent = fn || t('no_file');
 
-      // Habilitar/desabilitar botão de importar baseado na seleção do arquivo
+      // Habilitar/desabilitar botão de importar baseado na seleção do arquivo ABZ
       if(btnImport) {
         btnImport.disabled = !fn;
       }
+    });
+  }
+
+  // AN-FIN file picker (optional)
+  if(btnAnfin && inpAnfin && nameAnfin){
+    btnAnfin.addEventListener('click', ()=> inpAnfin.click());
+    inpAnfin.addEventListener('change', ()=>{
+      const fn = (inpAnfin.files && inpAnfin.files[0]) ? inpAnfin.files[0].name : '';
+      nameAnfin.dataset.fn = fn;
+      nameAnfin.textContent = fn || t('no_file_optional');
+      console.log('[DEBUG] AN-FIN file selected:', fn || 'none');
     });
   }
 }
@@ -130,7 +142,9 @@ function rowHtml(name, employeeData) {
           <td class="p-2">£${expensesTotal.toFixed(2)}</td>
           <td class="p-2"><input class="border rounded px-2 py-1 w-20 ${hasZeroQuantity ? 'border-red-500 border-2' : ''}" data-k="quantity" data-name="${name}" data-line="${rowIndex}" data-unit-price-id="${unitPriceId}" data-qty-id="${qtyId}" data-total-id="${totalServiceId}" placeholder="${hasZeroQuantity ? 'PREENCHER!' : 'ex: 160'}" ${hasZeroQuantity ? 'style="background-color: #fee2e2;"' : ''} /></td>
           <td class="p-2"><input class="border rounded px-2 py-1 w-24" data-k="unit_price" data-name="${name}" data-line="${rowIndex}" data-unit-price-id="${unitPriceId}" data-qty-id="${qtyId}" data-total-id="${totalServiceId}" placeholder="ex: 300" /></td>
-          <td class="p-2"><input class="border rounded px-2 py-1 w-40" data-k="call_off" data-name="${name}" data-line="-1" placeholder="ex: P25-122 (por colaborador)" /></td>
+          <td class="p-2"><input class="border rounded px-2 py-1 w-24" data-k="additional" data-name="${name}" placeholder="ex: 200.50" ${serviceIdx===0 ? '' : 'disabled style="background-color: #f3f4f6;"'} /></td>
+          <td class="p-2"><input class="border rounded px-2 py-1 w-24" data-k="expenses" data-name="${name}" placeholder="ex: 150.00" ${serviceIdx===0 ? '' : 'disabled style="background-color: #f3f4f6;"'} /></td>
+          <td class="p-2"><input class="border rounded px-2 py-1 w-40" data-k="call_off" data-name="${name}" data-line="-1" placeholder="ex: P25-122 (por colaborador)" ${serviceIdx===0 ? '' : 'disabled style="background-color: #f3f4f6;"'} /></td>
         </tr>`;
       rowIndex++;
     });
@@ -159,6 +173,8 @@ function rowHtml(name, employeeData) {
         <td class="p-2" style="font-weight: 600; color: #d97706;">£${expensesTotal.toFixed(2)}</td>
         <td class="p-2"><input class="border rounded px-2 py-1 w-20" data-k="quantity" data-name="${name}" data-line="${rowIndex}" data-unit-price-id="${unitPriceId}" data-qty-id="${qtyId}" data-total-id="${totalServiceId}" placeholder="ex: 160" /></td>
         <td class="p-2"><input class="border rounded px-2 py-1 w-24" data-k="unit_price" data-name="${name}" data-line="${rowIndex}" data-unit-price-id="${unitPriceId}" data-qty-id="${qtyId}" data-total-id="${totalServiceId}" placeholder="ex: 300" /></td>
+        <td class="p-2"><input class="border rounded px-2 py-1 w-24" data-k="additional" data-name="${name}" placeholder="ex: 200.50" /></td>
+        <td class="p-2"><input class="border rounded px-2 py-1 w-24" data-k="expenses" data-name="${name}" placeholder="ex: 150.00" /></td>
         <td class="p-2"><input class="border rounded px-2 py-1 w-40" data-k="call_off" data-name="${name}" data-line="-1" placeholder="ex: P25-122 (por colaborador)" /></td>
       </tr>`;
   } else {
@@ -175,6 +191,8 @@ function rowHtml(name, employeeData) {
         <td class="p-2">£0.00</td>
         <td class="p-2"><input class="border rounded px-2 py-1 w-20" data-k="quantity" data-name="${name}" data-line="${rowIndex}" placeholder="ex: 160" /></td>
         <td class="p-2"><input class="border rounded px-2 py-1 w-24" data-k="unit_price" data-name="${name}" data-line="${rowIndex}" placeholder="ex: 300" /></td>
+        <td class="p-2"><input class="border rounded px-2 py-1 w-24" data-k="additional" data-name="${name}" placeholder="ex: 200.50" /></td>
+        <td class="p-2"><input class="border rounded px-2 py-1 w-24" data-k="expenses" data-name="${name}" placeholder="ex: 150.00" /></td>
         <td class="p-2"><input class="border rounded px-2 py-1 w-40" data-k="call_off" data-name="${name}" data-line="-1" placeholder="ex: P25-122 (por colaborador)" /></td>
       </tr>`;
   }
@@ -207,8 +225,15 @@ async function doImport() {
   const f1 = $('#fileAbz').files[0];
   if (!f1) { alert(t('select_file_error')); return; }
 
+  const f2 = $('#fileAnfin').files[0];  // AN-FIN file (optional)
+
   console.log('[DEBUG] Starting import process');
-  console.log('[DEBUG] File selected:', f1.name, 'Size:', f1.size, 'bytes');
+  console.log('[DEBUG] ABZ file selected:', f1.name, 'Size:', f1.size, 'bytes');
+  if (f2) {
+    console.log('[DEBUG] AN-FIN file selected:', f2.name, 'Size:', f2.size, 'bytes');
+  } else {
+    console.log('[DEBUG] No AN-FIN file selected - expenses will be £0.00');
+  }
 
   // CORREÇÃO: Forçar limpeza antes de importar
   forceCleanData();
@@ -216,15 +241,32 @@ async function doImport() {
   setStatus(t('importing'));
   const fd = new FormData();
   fd.append('abz', f1);
+  if (f2) {
+    fd.append('anfin', f2);  // Add AN-FIN file if selected
+  }
 
   console.log('[DEBUG] Sending request to /api/import');
-  const r = await fetch('/api/import', { method: 'POST', body: fd });
+  const token = getAuthToken();
+  const r = await fetch('/api/import', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    },
+    body: fd
+  });
 
   console.log('[DEBUG] Response status:', r.status, r.statusText);
 
   if (!r.ok) {
     console.error('[DEBUG] Import failed with status:', r.status);
     setStatus(t('import_failed'));
+
+    // Check if it's an authentication error
+    if (r.status === 401) {
+      alert(t('session_expired') || 'Session expired. Please login again.');
+      window.location.href = '/ui/login.html';
+      return;
+    }
 
     // Try to get detailed error message from server
     try {
@@ -273,8 +315,20 @@ async function loadPreview() {
   console.log('[DEBUG] Loading preview for session:', SESSION_ID);
   setStatus(t('loading_preview'));
 
-  const r = await fetch(`/api/preview?session_id=${SESSION_ID}`);
+  const token = getAuthToken();
+  const r = await fetch(`/api/preview?session_id=${SESSION_ID}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
   console.log('[DEBUG] Preview response status:', r.status, r.statusText);
+
+  // Check for authentication errors
+  if (r.status === 401) {
+    alert(t('session_expired') || 'Session expired. Please login again.');
+    window.location.href = '/ui/login.html';
+    return;
+  }
 
   if (!r.ok) {
     console.error('[DEBUG] Failed to load preview:', r.status, r.statusText);
@@ -512,9 +566,16 @@ function collectOverrides() {
     const val = inp.value.trim();
     if (!val) return;
     if (!map[name]) map[name] = {};
+
+    // Handle per-employee overrides (call_off, additional, expenses)
     if (k === 'call_off') {
       map[name].call_off = val;
+    } else if (k === 'additional') {
+      map[name].additional = parseFloat(val);
+    } else if (k === 'expenses') {
+      map[name].expenses = parseFloat(val);
     } else {
+      // Handle per-line overrides (quantity, unit_price)
       if (!map[name].overrides) map[name].overrides = {};
       if (!map[name].overrides[line]) map[name].overrides[line] = {};
       map[name].overrides[line][k] = k === 'quantity' ? parseInt(val, 10) : parseFloat(val);
@@ -534,7 +595,12 @@ async function pollProgress() {
   const update = async () => {
     if (!SESSION_ID) return;
     try {
-      const r = await fetch(`/api/progress?session_id=${SESSION_ID}`);
+      const token = getAuthToken();
+      const r = await fetch(`/api/progress?session_id=${SESSION_ID}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       if (!r.ok) return;
       const p = await r.json();
       const pct = (p.percent ?? 0);
@@ -587,13 +653,24 @@ async function generate() {
 
   try {
     // Start asynchronous generation
+    const token = getAuthToken();
     const response = await fetch('/api/generate', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify(body)
     });
 
     if (!response.ok) {
+      // Check for authentication errors
+      if (response.status === 401) {
+        alert(t('session_expired') || 'Session expired. Please login again.');
+        window.location.href = '/ui/login.html';
+        return;
+      }
+
       let msg = `HTTP ${response.status}`;
       try {
         const err = await response.json();
@@ -630,7 +707,12 @@ async function waitForCompletion() {
   return new Promise((resolve, reject) => {
     const checkCompletion = async () => {
       try {
-        const response = await fetch(`/api/progress?session_id=${SESSION_ID}`);
+        const token = getAuthToken();
+        const response = await fetch(`/api/progress?session_id=${SESSION_ID}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
         if (!response.ok) {
           reject(new Error('Failed to check progress'));
           return;
@@ -658,10 +740,27 @@ async function waitForCompletion() {
 async function loadGenerationResults() {
   try {
     // Load the generated files from the session
-    const response = await fetch(`/api/session/${SESSION_ID}/files`);
+    const token = getAuthToken();
+    const response = await fetch(`/api/session/${SESSION_ID}/files`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    // Check for authentication errors
+    if (response.status === 401) {
+      alert(t('session_expired') || 'Session expired. Please login again.');
+      window.location.href = '/ui/login.html';
+      return;
+    }
+
     if (!response.ok) {
       // Fallback: try to get results from progress endpoint
-      const progressResponse = await fetch(`/api/progress?session_id=${SESSION_ID}`);
+      const progressResponse = await fetch(`/api/progress?session_id=${SESSION_ID}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       if (progressResponse.ok) {
         const progressData = await progressResponse.json();
         if (progressData.files) {
@@ -686,8 +785,8 @@ function displayResults(data) {
   const box = $('#result');
   box.innerHTML = '';
   (data.files||[]).forEach(f => {
-    const aX = f.url_xlsx ? `<a class="text-blue-700 underline" href="${f.url_xlsx}" target="_blank">XLSX</a>` : '';
-    const aP = f.url_pdf ? `<a class="text-blue-700 underline ml-2" href="${f.url_pdf}" target="_blank">PDF</a>` : `<span class="text-slate-500 ml-2">${t('pdfPending')}</span>`;
+    const aX = f.url_xlsx ? `<a class="text-blue-700 underline" href="javascript:void(0)" onclick="downloadSessionFile('${f.url_xlsx}', '${f.name}.xlsx')">XLSX</a>` : '';
+    const aP = f.url_pdf ? `<a class="text-blue-700 underline ml-2" href="javascript:void(0)" onclick="openSessionPDF('${f.url_pdf}')">PDF</a>` : `<span class="text-slate-500 ml-2">${t('pdfPending')}</span>`;
     box.insertAdjacentHTML('beforeend', `<div>• ${f.name}: ${aX} ${aP}</div>`);
   });
 
@@ -701,7 +800,8 @@ function displayResults(data) {
 
     // PDF ZIP only if any PDF exists
     if (hasPdf) {
-      l1.href = `${base}/zip?kind=pdf`;
+      l1.href = 'javascript:void(0)';
+      l1.onclick = () => downloadSessionFile(`${base}/zip?kind=pdf`, `session_${data.session_id}_pdf.zip`);
       l1.classList.remove('hidden');
       // Update only the text span, preserve the icon
       const textSpan1 = l1.querySelector('span:last-child');
@@ -713,7 +813,8 @@ function displayResults(data) {
 
     // ALL ZIP shown if any file exists (xlsx or pdf)
     if (hasPdf || hasXlsx) {
-      l2.href = `${base}/zip?kind=all`;
+      l2.href = 'javascript:void(0)';
+      l2.onclick = () => downloadSessionFile(`${base}/zip?kind=all`, `session_${data.session_id}_all.zip`);
       l2.classList.remove('hidden');
       // Update only the text span, preserve the icon
       const textSpan2 = l2.querySelector('span:last-child');
@@ -743,9 +844,25 @@ function displayResults(data) {
   pbox.textContent='';
 }
 
+// Check authentication before loading page
+function checkAuth() {
+  const token = getAuthToken();
+  if (!token) {
+    console.log('No auth token found, redirecting to login');
+    window.location.href = '/ui/login.html';
+    return false;
+  }
+  return true;
+}
+
 // Initialize when DOM is ready
 function initializeApp() {
   try {
+    // Check authentication first
+    if (!checkAuth()) {
+      return;
+    }
+
     // Bind event listeners
     const btnImport = $('#btnImport');
     const btnPreview = $('#btnPreview');
@@ -796,6 +913,98 @@ function initializeApp() {
     console.log('App initialized successfully');
   } catch (error) {
     console.error('Error initializing app:', error);
+  }
+}
+
+// Download session file with authentication
+async function downloadSessionFile(url, filename) {
+  try {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      alert(t('session_expired') || 'Session expired. Please login again.');
+      window.location.href = '/ui/login.html';
+      return;
+    }
+
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (response.status === 401) {
+      alert(t('session_expired') || 'Session expired. Please login again.');
+      window.location.href = '/ui/login.html';
+      return;
+    }
+
+    if (!response.ok) {
+      throw new Error('Download failed');
+    }
+
+    // Get the blob
+    const blob = await response.blob();
+
+    // Create download link
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+
+    // Cleanup
+    window.URL.revokeObjectURL(downloadUrl);
+    document.body.removeChild(a);
+  } catch (error) {
+    console.error('Download error:', error);
+    alert(t('download_failed') || 'Failed to download file');
+  }
+}
+
+// Open session PDF in new tab with authentication
+async function openSessionPDF(url) {
+  console.log('🔍 openSessionPDF called with URL:', url);
+  try {
+    const token = localStorage.getItem('auth_token');
+    console.log('🔍 Token exists:', !!token);
+
+    if (!token) {
+      alert(t('session_expired') || 'Session expired. Please login again.');
+      window.location.href = '/ui/login.html';
+      return;
+    }
+
+    console.log('🔍 Fetching PDF from:', url);
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    console.log('🔍 Response status:', response.status);
+
+    if (response.status === 401) {
+      alert(t('session_expired') || 'Session expired. Please login again.');
+      window.location.href = '/ui/login.html';
+      return;
+    }
+
+    if (!response.ok) {
+      throw new Error('Failed to load PDF');
+    }
+
+    // Get the blob
+    const blob = await response.blob();
+    console.log('🔍 Blob size:', blob.size);
+
+    // Create object URL and open in new tab
+    const pdfUrl = window.URL.createObjectURL(blob);
+    console.log('🔍 Opening PDF in new tab');
+    window.open(pdfUrl, '_blank');
+  } catch (error) {
+    console.error('❌ PDF open error:', error);
+    alert(t('pdf_open_failed') || 'Failed to open PDF');
   }
 }
 

@@ -72,14 +72,30 @@ def _read_with_openpyxl(xlsx_path: Path, sheet_name: str) -> pd.DataFrame:
     ])
     # clean
     df = df.dropna(how='all')
-    # keep only logical rows (Name or Position present)
-    mask = df['Name'].notna() | df['Position'].notna() | df['Charge Rate (GBP)'].notna()
-    df = df.loc[mask]
-    # coerce numbers
+
+    # CRITICAL FIX: More strict filtering to prevent duplicate rows
+    # Keep only rows that have EITHER:
+    # 1. A valid Position (not empty/nan), OR
+    # 2. A Name AND a Charge Rate (for rows without position but with data)
+    # This prevents empty rows from being included and duplicated
+
+    # First, forward-fill names BEFORE filtering (for multi-position entries)
+    df['Name'] = df['Name'].ffill()
+
+    # Coerce numbers first
     for col in ['Charge Rate (GBP)', 'Days', 'Brazilian Payroll Additionals (GBP)', 'Expenses', 'Monthly Total (GBP)']:
         df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0.0)
-    # forward-fill names for multi-position entries
-    df['Name'] = df['Name'].ffill()
+
+    # Now filter: keep only rows with valid Position OR rows with Name + meaningful data
+    has_valid_position = df['Position'].notna() & (df['Position'].astype(str).str.strip().str.lower() != 'nan')
+    has_meaningful_data = (df['Name'].notna()) & (
+        (df['Charge Rate (GBP)'] > 0) |
+        (df['Days'] > 0) |
+        (df['Brazilian Payroll Additionals (GBP)'] > 0)
+    )
+    mask = has_valid_position | has_meaningful_data
+    df = df.loc[mask]
+
     # keep expected columns
     return df[[c for c in EXPECTED_COLS if c in df.columns]]
 
@@ -103,15 +119,23 @@ def read_charge_rate_table(xlsx_path: Path, sheet_name: str = 'Charge Rate') -> 
                 mapping[orig] = 'Name'
             elif ('position' in lc) or ('function' in lc):
                 mapping[orig] = 'Position'
-            elif ('charge rate' in lc) or ('charge rates' in lc):
+            elif ('charge rate' in lc) or ('charge rates' in lc) or ('unit rate' in lc) or ('unit price' in lc):
                 mapping[orig] = 'Charge Rate (GBP)'
             elif lc in ('days', 'day', 'qty', 'quantity'):
                 mapping[orig] = 'Days'
-            elif ('brazilian payroll' in lc) and ('gbp' in lc):
+            # Brazilian Payroll Additional(s) column can vary a lot; be liberal
+            elif (
+                ('brazilian' in lc and ('payroll' in lc or 'additional' in lc)) or
+                ('additional' in lc and 'payroll' in lc) or
+                ('additional' in lc and 'brazil' in lc) or
+                ('adicional' in lc and 'br' in lc) or
+                ('adicional' in lc and 'brazil' in lc)
+            ):
                 mapping[orig] = 'Brazilian Payroll Additionals (GBP)'
-            elif 'expenses' in lc:
+            # Expenses column can appear as "Despesas", "Expense(s)", etc.
+            elif ('expenses' in lc) or ('expense' in lc) or ('despesa' in lc) or ('despesas' in lc):
                 mapping[orig] = 'Expenses'
-            elif ('monthly total' in lc) or ('total (gbp)' in lc):
+            elif ('monthly total' in lc) or ('total (gbp)' in lc) or (lc.startswith('total') and 'gbp' in lc):
                 mapping[orig] = 'Monthly Total (GBP)'
             else:
                 mapping[orig] = str(orig)
@@ -121,22 +145,52 @@ def read_charge_rate_table(xlsx_path: Path, sheet_name: str = 'Charge Rate') -> 
             if name_col:
                 df = df.rename(columns={name_col: 'Name'})
         df = df.dropna(how='all')
-        conds = []
+
+        # CRITICAL FIX: Forward-fill names BEFORE filtering to handle multi-position entries
         if 'Name' in df.columns:
-            conds.append(df['Name'].notna())
-        if 'Position' in df.columns:
-            conds.append(df['Position'].notna())
-        if 'Charge Rate (GBP)' in df.columns:
-            conds.append(df['Charge Rate (GBP)'].notna())
-        mask_core = pd.Series([False] * len(df))
-        for c in conds:
-            mask_core = mask_core | c
-        df = df.loc[mask_core]
+            df['Name'] = df['Name'].ffill()
+
+        # Coerce numbers first
         for num_col in ['Charge Rate (GBP)', 'Days', 'Brazilian Payroll Additionals (GBP)', 'Expenses', 'Monthly Total (GBP)']:
             if num_col in df.columns:
                 df[num_col] = pd.to_numeric(df[num_col], errors='coerce').fillna(0.0)
+
+        # CRITICAL FIX: More strict filtering to prevent duplicate rows
+        # Keep only rows with valid Position OR rows with meaningful data
+        has_valid_position = False
+        has_meaningful_data = False
+
+        if 'Position' in df.columns:
+            has_valid_position = df['Position'].notna() & (df['Position'].astype(str).str.strip().str.lower() != 'nan')
+
         if 'Name' in df.columns:
-            df['Name'] = df['Name'].ffill()
+            has_meaningful_data = (df['Name'].notna()) & (
+                (df.get('Charge Rate (GBP)', pd.Series([0]*len(df))) > 0) |
+                (df.get('Days', pd.Series([0]*len(df))) > 0) |
+                (df.get('Brazilian Payroll Additionals (GBP)', pd.Series([0]*len(df))) > 0)
+            )
+
+        # Combine conditions
+        if isinstance(has_valid_position, pd.Series) and isinstance(has_meaningful_data, pd.Series):
+            mask_core = has_valid_position | has_meaningful_data
+        elif isinstance(has_valid_position, pd.Series):
+            mask_core = has_valid_position
+        elif isinstance(has_meaningful_data, pd.Series):
+            mask_core = has_meaningful_data
+        else:
+            # Fallback to old behavior if neither condition is valid
+            conds = []
+            if 'Name' in df.columns:
+                conds.append(df['Name'].notna())
+            if 'Position' in df.columns:
+                conds.append(df['Position'].notna())
+            if 'Charge Rate (GBP)' in df.columns:
+                conds.append(df['Charge Rate (GBP)'].notna())
+            mask_core = pd.Series([False] * len(df))
+            for c in conds:
+                mask_core = mask_core | c
+
+        df = df.loc[mask_core]
 
         # Extract days from Invoice sheets
         df = _extract_days_from_invoice_sheets(df, xlsx_path)
@@ -182,6 +236,11 @@ def aggregate_employee(df: pd.DataFrame) -> pd.DataFrame:
     """Return per-employee structure with individual service lines and totals.
     We keep multiple positions as separate service lines and also compute totals
     for Additional and Expenses.
+
+    EXPENSES PRIORITY:
+    1. AN-FIN (Costs sheet) - Most accurate, preferred source (handled in server.py)
+    2. ABZ Expenses column - Fallback if AN-FIN not available (returned here)
+    3. £0.00 - If neither source has data
     """
     if 'Name' not in df.columns:
         return pd.DataFrame(columns=['Name','Type','Description','Unit Price (GBP)','Quantity','Final Price (GBP)'])
@@ -195,13 +254,24 @@ def aggregate_employee(df: pd.DataFrame) -> pd.DataFrame:
         pos = row.get('Position')
         rate = float(row.get('Charge Rate (GBP)', 0) or 0)
         days = float(row.get('Days', 0) or 0)
-        if (days > 0) and pos:
+
+        # Validate position: must exist and not be NaN/None/empty/"nan"
+        # CRITICAL FIX: Prevent "nan" string from being treated as valid position
+        pos_valid = False
+        if pos is not None and not pd.isna(pos):
+            pos_str = str(pos).strip().lower()
+            if pos_str and pos_str != 'nan' and pos_str != 'none':
+                pos_valid = True
+
+        # Include service line only if position is valid
+        # This prevents duplicate rows with "Name - nan" descriptions
+        if pos_valid:
             records.append({
                 'Name': name,
                 'Type': 'service',
                 'Description': f"{name} - {pos}",
                 'Unit Price (GBP)': rate,
-                'Quantity': days,
+                'Quantity': days,  # Can be 0 - frontend will highlight this
                 'Final Price (GBP)': rate * days,
             })
 
@@ -215,6 +285,8 @@ def aggregate_employee(df: pd.DataFrame) -> pd.DataFrame:
                 'Quantity': None,
                 'Final Price (GBP)': float(add_val),
             })
+
+    # Include Expenses from ABZ (will be used as fallback if AN-FIN not available)
     for name, exp_val in getattr(exp_map, 'items', lambda: [])():
         if exp_val and exp_val != 0:
             records.append({
@@ -226,7 +298,27 @@ def aggregate_employee(df: pd.DataFrame) -> pd.DataFrame:
                 'Final Price (GBP)': float(exp_val),
             })
 
-    return pd.DataFrame.from_records(records)
+    # Create DataFrame and remove duplicates
+    result_df = pd.DataFrame.from_records(records)
+
+    # CRITICAL FIX: Remove duplicate rows (same Name + Description + Unit Price)
+    # This prevents multiple identical service lines from appearing
+    if not result_df.empty and 'Name' in result_df.columns:
+        # Group by Name, Type, Description, Unit Price and sum quantities
+        # This consolidates duplicate positions into a single line
+        service_rows = result_df[result_df['Type'] == 'service'].copy()
+        other_rows = result_df[result_df['Type'] != 'service'].copy()
+
+        if not service_rows.empty:
+            # Remove exact duplicates first
+            service_rows = service_rows.drop_duplicates(
+                subset=['Name', 'Description', 'Unit Price (GBP)'],
+                keep='first'
+            )
+
+        result_df = pd.concat([service_rows, other_rows], ignore_index=True)
+
+    return result_df
 
 
 def _extract_days_from_invoice_sheets(df: pd.DataFrame, xlsx_path: Path) -> pd.DataFrame:
