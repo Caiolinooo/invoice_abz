@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice History - Invoice System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #005dff;
+            --primary-dark: #0052e6;
+            --secondary-color: #6339F5;
+            --accent-color: #FFC000;
+            --text-primary: #2C3E50;
+            --text-secondary: #7F8C8D;
+            --background: #F8F9FA;
+            --surface: #FFFFFF;
+            --border: #E9ECEF;
+            --success: #28A745;
+            --warning: #FFC107;
+            --error: #DC3545;
+            --info: #17A2B8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Modal animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Modal styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            animation: fadeIn 0.2s ease-out;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease-out;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .nav {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: var(--text-secondary);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .nav a:hover, .nav a.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 93, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .user-info .material-icons {
+            color: var(--primary-color);
+        }
+
+        .user-name {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .user-role {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            padding: 0.25rem 0.5rem;
+            background: rgba(0, 93, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .btn-logout {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-logout:hover {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--error);
+        }
+
+        .btn-logout .material-icons {
+            font-size: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            padding: 1.25rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 120px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value {
+            font-size: clamp(1.25rem, 3vw, 1.75rem);
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            word-break: break-word;
+            line-height: 1.2;
+            width: 100%;
+            position: relative;
+        }
+
+        .stat-value[title] {
+            cursor: help;
+        }
+
+        .stat-value[title]:hover {
+            opacity: 0.9;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: clamp(0.75rem, 2vw, 0.875rem);
+            font-weight: 500;
+            line-height: 1.3;
+            width: 100%;
+        }
+
+        /* Gradient cards */
+        .stat-card-gradient-purple {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+
+        .stat-card-gradient-purple .stat-value {
+            color: white;
+        }
+
+        .stat-card-gradient-purple .stat-label {
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .stat-card-gradient-pink {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: none;
+        }
+
+        .stat-card-gradient-pink .stat-value {
+            color: white;
+        }
+
+        .stat-card-gradient-pink .stat-label {
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+
+            .stat-card {
+                padding: 1rem;
+                min-height: 100px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .filters {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-input {
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--text-secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: var(--text-primary);
+        }
+
+        .table-container {
+            background: var(--surface);
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table th {
+            background: var(--background);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .table tbody tr:hover {
+            background: var(--background);
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-generated {
+            background: var(--info);
+            color: white;
+        }
+
+        .status-sent {
+            background: var(--warning);
+            color: white;
+        }
+
+        .status-paid {
+            background: var(--success);
+            color: white;
+        }
+
+        .status-cancelled {
+            background: var(--error);
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .error {
+            background: #FEF2F2;
+            color: var(--error);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #FECACA;
+            margin-bottom: 1rem;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .pagination button {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-primary);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .file-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            text-decoration: none;
+            font-size: 0.75rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .excel-link {
+            background-color: #e8f5e8;
+            color: #2d5a2d;
+            border: 1px solid #c3e6c3;
+        }
+
+        .excel-link:hover {
+            background-color: #d4f4d4;
+            transform: translateY(-1px);
+        }
+
+        .pdf-link {
+            background-color: #fef2f2;
+            color: #7f1d1d;
+            border: 1px solid #fecaca;
+        }
+
+        .pdf-link:hover {
+            background-color: #fee2e2;
+            transform: translateY(-1px);
+        }
+
+        .text-muted {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .pagination button.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .footer {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 2rem;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .footer-company {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .footer-version {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            .table {
+                min-width: 600px;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <span class="material-icons">receipt_long</span>
+            <span data-i18n="invoice_system">Invoice System</span>
+        </div>
+        <nav class="nav">
+            <a href="/ui/" data-i18n="home">Home</a>
+            <a href="/ui/history.html" class="active" data-i18n="history">History</a>
+            <a href="/ui/settings.html" data-i18n="settings">Settings</a>
+            <a href="/docs" target="_blank" data-i18n="api_docs">API Docs</a>
+            <select id="langSel" class="form-input" style="min-width: 120px; margin-left: 1rem;">
+                <option value="pt-BR">Português (BR)</option>
+                <option value="en">English</option>
+            </select>
+            <div id="userInfo" style="margin-left: 1rem;"></div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title" data-i18n="invoice_history">Invoice History</h1>
+            <p class="page-subtitle" data-i18n="track_manage_invoices">Track and manage all generated invoices</p>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalInvoices">-</div>
+                <div class="stat-label" data-i18n="total_invoices">Total Invoices</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalAmount">-</div>
+                <div class="stat-label" data-i18n="total_revenue">Total Revenue</div>
+            </div>
+            <div class="stat-card stat-card-gradient-purple">
+                <div class="stat-value" id="currentMonthAmount">-</div>
+                <div class="stat-label" data-i18n="current_month">Current Month</div>
+            </div>
+            <div class="stat-card stat-card-gradient-pink">
+                <div class="stat-value" id="lastMonthAmount">-</div>
+                <div class="stat-label" data-i18n="last_month">Last Month</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="recentInvoices">-</div>
+                <div class="stat-label" data-i18n="last_30_days">Last 30 Days</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="pendingInvoices">-</div>
+                <div class="stat-label" data-i18n="pending">Pending</div>
+            </div>
+        </div>
+
+        <div class="filters">
+            <div class="filters-grid">
+                <div class="form-group">
+                    <label class="form-label" data-i18n="employee_name">Employee Name</label>
+                    <input type="text" class="form-input" id="filterEmployee" data-i18n="search_employee" placeholder="Search by employee name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" data-i18n="status">Status</label>
+                    <select class="form-input" id="filterStatus">
+                        <option value="" data-i18n="all_statuses">All Statuses</option>
+                        <option value="generated">Generated</option>
+                        <option value="sent">Sent</option>
+                        <option value="paid">Paid</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date From</label>
+                    <input type="date" class="form-input" id="filterDateFrom">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date To</label>
+                    <input type="date" class="form-input" id="filterDateTo">
+                </div>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <button class="btn btn-primary" onclick="applyFilters()">
+                    <span class="material-icons">search</span>
+                    <span data-i18n="apply_filters">Apply Filters</span>
+                </button>
+                <button class="btn btn-secondary" onclick="clearFilters()">
+                    <span class="material-icons">clear</span>
+                    <span data-i18n="clear">Clear</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="errorMessage" class="error" style="display: none;"></div>
+
+        <div class="table-container">
+            <div id="loadingMessage" class="loading">
+                <span class="material-icons">hourglass_empty</span>
+                <span data-i18n="loading_invoices">Loading invoices...</span>
+            </div>
+
+            <table class="table" id="invoicesTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th data-i18n="invoice_number_short">Invoice #</th>
+                        <th data-i18n="employee">Employee</th>
+                        <th data-i18n="position">Position</th>
+                        <th data-i18n="date">Date</th>
+                        <th data-i18n="amount">Amount</th>
+                        <th data-i18n="status">Status</th>
+                        <th data-i18n="files">Files</th>
+                        <th data-i18n="actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="invoicesTableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination" id="pagination" style="display: none;">
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div>
+                <span class="footer-company" id="footerCopy" data-i18n="footer_copyright">© <span id="year"></span> ABZ Group. All rights reserved.</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                <span class="footer-version" id="footerVersion" data-i18n="system_version">Invoice Conversion System v2.0.0</span>
+                <div class="footer-links">
+                    <a href="https://painelabzgroup.netlify.app" target="_blank" rel="noopener" id="footerPortal" data-i18n="employee_portal">Employee Portal</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="auth.js"></script>
+    <script src="i18n.js?v=10"></script>
+    <script src="history.js?v=10"></script>
+</body>
+</html>

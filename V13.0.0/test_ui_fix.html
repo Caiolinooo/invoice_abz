@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste UI - Bárbara</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; }
+        td { border: 1px solid #ccc; padding: 8px; }
+        .font-medium { font-weight: 600; }
+        .text-slate-500 { color: #64748b; }
+    </style>
+</head>
+<body>
+    <h1>Teste: Bárbara aparece na UI?</h1>
+    
+    <h2>Caso 1: Funcionário com serviços (Daniel)</h2>
+    <table id="table1"></table>
+    
+    <h2>Caso 2: Funcionário SEM serviços, mas COM Additional (Bárbara)</h2>
+    <table id="table2"></table>
+    
+    <h2>Caso 3: Funcionário sem nada</h2>
+    <table id="table3"></table>
+
+    <script>
+        // Copiar a função rowHtml corrigida
+        function rowHtml(name, employeeData) {
+          const services = employeeData.items || [];
+
+          if (!Array.isArray(services) || services.length === 0) {
+            return `
+              <tr class="border-b">
+                <td class="p-2 font-medium">${name}</td>
+                <td class="p-2 text-slate-500" colspan="9">No services</td>
+              </tr>`;
+          }
+
+          // Separate service items from additional/expenses
+          const serviceItems = services.filter(s => s.unit_price && s.quantity);
+          const additionalItem = services.find(s => s.description === 'Brazilian Payroll Additional');
+          const expensesItem = services.find(s => s.description === 'Expenses');
+
+          // Get totals for Additional and Expenses to show in ALL service rows
+          const additionalTotal = additionalItem ? (additionalItem.final || 0) : 0;
+          const expensesTotal = expensesItem ? (expensesItem.final || 0) : 0;
+
+          const badge = serviceItems.length > 1 ? `<span class="ml-2 inline-block text-xs rounded-full px-2 py-0.5 bg-blue-100 text-blue-700 border border-blue-300">${serviceItems.length} funções</span>` : '';
+
+          let html = '';
+          let rowIndex = 0;
+
+          // If there are service items, show them with Additional and Expenses
+          if (serviceItems.length > 0) {
+            serviceItems.forEach((service, serviceIdx) => {
+              html += `
+                <tr class="border-b">
+                  <td class="p-2 font-medium">${serviceIdx===0 ? (name + (badge||'')) : ''}</td>
+                  <td class="p-2">${service.description||''}</td>
+                  <td class="p-2">£${(service.unit_price||0).toFixed(2)}</td>
+                  <td class="p-2">${service.quantity||0}</td>
+                  <td class="p-2">£${(service.final||0).toFixed(2)}</td>
+                  <td class="p-2">£${additionalTotal.toFixed(2)}</td>
+                  <td class="p-2">£${expensesTotal.toFixed(2)}</td>
+                  <td class="p-2"><input class="border rounded px-2 py-1 w-20" data-k="quantity" data-name="${name}" data-line="${rowIndex}" placeholder="ex: 160" /></td>
+                  <td class="p-2"><input class="border rounded px-2 py-1 w-24" data-k="unit_price" data-name="${name}" data-line="${rowIndex}" placeholder="ex: 300" /></td>
+                  <td class="p-2"><input class="border rounded px-2 py-1 w-40" data-k="call_off" data-name="${name}" data-line="-1" placeholder="ex: P25-122 (por colaborador)" /></td>
+                </tr>`;
+              rowIndex++;
+            });
+          } else if (additionalTotal > 0 || expensesTotal > 0) {
+            // No service items, but has Additional or Expenses - show a row for them
+            html += `
+              <tr class="border-b">
+                <td class="p-2 font-medium">${name}</td>
+                <td class="p-2 text-slate-500">No services (only Additional/Expenses)</td>
+                <td class="p-2">-</td>
+                <td class="p-2">-</td>
+                <td class="p-2">£0.00</td>
+                <td class="p-2">£${additionalTotal.toFixed(2)}</td>
+                <td class="p-2">£${expensesTotal.toFixed(2)}</td>
+                <td class="p-2">-</td>
+                <td class="p-2">-</td>
+                <td class="p-2"><input class="border rounded px-2 py-1 w-40" data-k="call_off" data-name="${name}" data-line="-1" placeholder="ex: P25-122 (por colaborador)" /></td>
+              </tr>`;
+          }
+
+          return html;
+        }
+
+        // Caso 1: Daniel (com serviços)
+        const daniel = {
+            items: [
+                {
+                    description: "Daniel Vieira Silva Nunes - Data Processor",
+                    unit_price: 770,
+                    quantity: 12,
+                    final: 9240
+                },
+                {
+                    description: "Brazilian Payroll Additional",
+                    final: 583.46
+                }
+            ]
+        };
+        document.getElementById('table1').innerHTML = rowHtml('Daniel Vieira Silva Nunes', daniel);
+
+        // Caso 2: Bárbara (SEM serviços, mas COM Additional)
+        const barbara = {
+            items: [
+                {
+                    description: "Brazilian Payroll Additional",
+                    final: 871.63
+                }
+            ]
+        };
+        document.getElementById('table2').innerHTML = rowHtml('Bárbara Chapeta Mattoso Franco', barbara);
+
+        // Caso 3: Funcionário vazio
+        const empty = {
+            items: []
+        };
+        document.getElementById('table3').innerHTML = rowHtml('Funcionário Vazio', empty);
+
+        // Verificar resultados
+        console.log('='.repeat(80));
+        console.log('TESTE: Bárbara aparece na UI?');
+        console.log('='.repeat(80));
+        
+        const table2Rows = document.getElementById('table2').querySelectorAll('tr');
+        if (table2Rows.length > 0) {
+            console.log('✅ SUCESSO! Bárbara aparece na tabela');
+            console.log(`   Número de linhas: ${table2Rows.length}`);
+            console.log(`   Conteúdo: ${table2Rows[0].textContent.trim()}`);
+        } else {
+            console.log('❌ FALHA! Bárbara NÃO aparece na tabela');
+        }
+    </script>
+</body>
+</html>
+

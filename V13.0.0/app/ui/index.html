@@ -1,0 +1,758 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Conversor Invoice</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    :root {
+        --primary-color: #005dff;
+        --primary-dark: #0052e6;
+        --secondary-color: #6339F5;
+        --accent-color: #FFC000;
+        --text-primary: #2C3E50;
+        --text-secondary: #7F8C8D;
+        --background: #F8F9FA;
+        --surface: #FFFFFF;
+        --border: #E9ECEF;
+        --success: #28A745;
+        --warning: #FFC107;
+        --error: #DC3545;
+        --info: #17A2B8;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: var(--background);
+        color: var(--text-primary);
+        line-height: 1.6;
+    }
+
+    .header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 1rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .nav {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .nav a {
+        text-decoration: none !important;
+        color: var(--text-secondary);
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .nav a:hover {
+        background: var(--primary-color);
+        color: white;
+        text-decoration: none !important;
+    }
+
+    .nav a:visited,
+    .nav a:active,
+    .nav a:focus {
+        text-decoration: none !important;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .section {
+        background: var(--surface);
+        border-radius: 1rem;
+        border: 1px solid var(--border);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-primary);
+    }
+
+    .section-description {
+        color: var(--text-secondary);
+        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+    }
+
+    .form-input, .form-select {
+        padding: 0.75rem;
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        transition: border-color 0.2s;
+        font-family: inherit;
+        background: var(--surface);
+    }
+
+    .form-input:focus, .form-select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+    }
+
+    .form-help {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        justify-content: center;
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 93, 255, 0.3);
+    }
+
+    .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .btn-secondary {
+        background: var(--text-secondary);
+        color: white;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+        background: var(--text-primary);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(127, 140, 141, 0.3);
+    }
+
+    .btn-success {
+        background: var(--success);
+        color: white;
+    }
+
+    .btn-success:hover:not(:disabled) {
+        background: #218838;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+
+    .btn-warning {
+        background: var(--warning);
+        color: white;
+    }
+
+    .btn-warning:hover:not(:disabled) {
+        background: #e0a800;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+    }
+
+    /* Download buttons specific styling */
+    .btn[id^="lnkZip"] {
+        min-width: 180px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .btn[id^="lnkZip"] .material-icons {
+        margin-right: 0.5rem;
+        font-size: 1.1rem;
+    }
+
+    .btn[id^="lnkZip"]:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .status {
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .status-ready {
+        background: var(--success);
+        color: white;
+    }
+
+    .status-processing {
+        background: var(--warning);
+        color: white;
+    }
+
+    .status-error {
+        background: var(--error);
+        color: white;
+    }
+
+    .preview-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+        background: var(--surface);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        min-width: 1200px; /* Garante largura mínima */
+    }
+
+    .preview-table th,
+    .preview-table td {
+        padding: 0.75rem 0.5rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.875rem;
+        vertical-align: top;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+
+    .preview-table th {
+        background: var(--background);
+        font-weight: 600;
+        color: var(--text-primary);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        white-space: nowrap;
+        border-bottom: 2px solid var(--border); /* Destaca o header */
+    }
+
+    .preview-table tbody tr:hover {
+        background: var(--background);
+    }
+
+    /* SOLUÇÃO ROBUSTA: Primeira coluna fixa */
+    .preview-table th:nth-child(1), .preview-table td:nth-child(1) {
+        width: 200px;
+        min-width: 200px;
+        max-width: 200px;
+        position: sticky;
+        left: 0;
+        background: var(--surface);
+        z-index: 15;
+        border-right: 3px solid var(--primary-color);
+        box-shadow: 2px 0 6px rgba(0, 0, 0, 0.15);
+        font-weight: 600;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    } /* Colaborador - STICKY ROBUSTO */
+
+    .preview-table th:nth-child(1) {
+        z-index: 20; /* Header da primeira coluna tem prioridade máxima */
+        background: var(--background);
+        font-weight: 700;
+    }
+
+    .preview-table th:nth-child(2), .preview-table td:nth-child(2) { width: 300px; min-width: 250px; } /* Descrição */
+    .preview-table th:nth-child(3), .preview-table td:nth-child(3) { width: 80px; min-width: 80px; text-align: right; } /* Unit Price */
+    .preview-table th:nth-child(4), .preview-table td:nth-child(4) { width: 60px; min-width: 60px; text-align: center; } /* Qty */
+    .preview-table th:nth-child(5), .preview-table td:nth-child(5) { width: 100px; min-width: 100px; text-align: right; } /* Total */
+    .preview-table th:nth-child(6), .preview-table td:nth-child(6) { width: 80px; min-width: 80px; text-align: right; } /* Additional */
+    .preview-table th:nth-child(7), .preview-table td:nth-child(7) { width: 80px; min-width: 80px; text-align: right; } /* Expenses */
+    .preview-table th:nth-child(8), .preview-table td:nth-child(8) { width: 100px; min-width: 100px; } /* Override Qty */
+    .preview-table th:nth-child(9), .preview-table td:nth-child(9) { width: 100px; min-width: 100px; } /* Override Unit */
+    .preview-table th:nth-child(10), .preview-table td:nth-child(10) { width: 150px; min-width: 150px; } /* Override Call-Off */
+
+    /* Estilo para inputs na tabela */
+    .preview-table input[type="text"] {
+        width: 100%;
+        padding: 0.25rem;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        font-size: 0.875rem;
+        background: var(--surface);
+        color: var(--text-primary);
+    }
+
+    .preview-table input[type="text"]:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(0, 93, 255, 0.1);
+    }
+
+    /* Container da tabela com scroll melhorado */
+    .table-container {
+        overflow-x: auto;
+        overflow-y: auto;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        background: var(--surface);
+        max-height: 70vh; /* Altura otimizada para melhor visualização */
+        position: relative;
+        /* Smooth scrolling */
+        scroll-behavior: smooth;
+        /* Força o sticky a funcionar */
+        contain: layout style paint;
+    }
+
+    /* Indicador visual de scroll horizontal */
+    .table-container::after {
+        content: '← Scroll horizontal para ver mais colunas →';
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        background: rgba(0, 93, 255, 0.8);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+        z-index: 20;
+    }
+
+    .table-container:hover::after {
+        opacity: 1;
+    }
+
+    .table-container::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .table-container::-webkit-scrollbar-track {
+        background: var(--background);
+        border-radius: 4px;
+    }
+
+    .table-container::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 4px;
+    }
+
+    .table-container::-webkit-scrollbar-thumb:hover {
+        background: #0056e0;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 0.5rem;
+        background: var(--border);
+        border-radius: 0.25rem;
+        overflow: hidden;
+        margin: 1rem 0;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: var(--primary-color);
+        transition: width 0.3s ease;
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .alert-success {
+        background: #D4EDDA;
+        color: #155724;
+        border: 1px solid #C3E6CB;
+    }
+
+    .alert-warning {
+        background: #FFF3CD;
+        color: #856404;
+        border: 1px solid #FFEAA7;
+    }
+
+    .alert-error {
+        background: #F8D7DA;
+        color: #721C24;
+        border: 1px solid #F5C6CB;
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    .loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 2rem;
+        color: var(--text-secondary);
+    }
+
+    .footer {
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        padding: 2rem;
+        text-align: center;
+        margin-top: auto;
+    }
+
+    .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .footer-links {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .footer-links a {
+        color: var(--text-secondary);
+        text-decoration: none !important;
+        font-size: 0.9rem;
+        transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+        color: var(--primary-color);
+        text-decoration: none !important;
+    }
+
+    .footer-links a:visited,
+    .footer-links a:active,
+    .footer-links a:focus {
+        text-decoration: none !important;
+    }
+
+    /* Global link reset to prevent underlines */
+    a {
+        text-decoration: none !important;
+    }
+
+    a:hover {
+        text-decoration: none !important;
+    }
+
+    .footer-company {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .footer-version {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        opacity: 0.8;
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            padding: 1rem;
+        }
+
+        .header {
+            padding: 1rem;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .nav {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .footer-content {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+  </style>
+  <link rel="icon" href="data:," />
+</head>
+<body>
+  <div style="min-height: 100vh; display: flex; flex-direction: column;">
+    <header class="header">
+      <div class="logo">
+        <a href="https://painelabzgroup.netlify.app" target="_blank" rel="noopener">
+          <img src="https://painelabzgroup.netlify.app/images/LC1_Azul.png" alt="ABZ Group" style="height: 2rem; width: auto;" />
+        </a>
+        <span id="appTitle" data-i18n="invoice_converter">Conversor Invoice</span>
+      </div>
+      <nav class="nav">
+        <a href="/ui/history.html">
+          <span class="material-icons">history</span>
+          <span id="navHistory" data-i18n="history">Histórico</span>
+        </a>
+        <a href="/ui/settings.html">
+          <span class="material-icons">settings</span>
+          <span id="navSettings" data-i18n="settings">Configurações</span>
+        </a>
+        <a href="/ui/system-check.html">
+          <span class="material-icons">build</span>
+          <span>Diagnóstico</span>
+        </a>
+        <a href="https://painelabzgroup.netlify.app" target="_blank" rel="noopener" data-i18n="employee_hub">Employee Hub</a>
+        <select id="langSel" class="form-select" style="min-width: 150px;">
+          <option value="pt-BR">Português (BR)</option>
+          <option value="en">English</option>
+        </select>
+        <div class="status status-ready" id="status">
+          <span class="material-icons" style="font-size: 1rem;">check_circle</span>
+          <span data-i18n="ready">Pronto</span>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container" style="flex: 1;">
+      <!-- Import Section -->
+      <section class="section">
+        <h2 class="section-title">
+          <span class="material-icons">upload_file</span>
+          <span id="hImport" data-i18n="import_file">1) Importar Arquivo</span>
+        </h2>
+        <p class="section-description" data-i18n="import_description">
+          Faça upload do arquivo ABZ com dados de charge rate para iniciar o processo de geração de invoices.
+        </p>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" id="lblAbz" data-i18n="abz_file_label">ABZ - Charge Rate.xlsx</label>
+            <div class="form-help" data-i18n="abz_file_help">Planilha com dados de charge rate, incluindo Brazilian Payroll Additionals</div>
+            <input id="fileAbz" type="file" accept=".xlsx,.xls" class="hidden" />
+            <button id="btnPickAbz" type="button" class="btn btn-secondary">
+              <span class="material-icons">upload_file</span>
+              <span id="btnPickAbzText" data-i18n="select_file">Selecionar arquivo</span>
+            </button>
+            <div id="fileAbzName" class="form-help" style="margin-top: 0.5rem;">
+              <span class="material-icons" style="font-size: 1rem; vertical-align: middle;">description</span>
+              <span data-i18n="no_file">Nenhum arquivo</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" id="lblAnfin" data-i18n="anfin_file_label">AN-FIN.xlsx (Opcional)</label>
+            <div class="form-help" data-i18n="anfin_file_help">Planilha com dados de Expenses (custos) mais precisos. Se não fornecido, usa expenses do ABZ</div>
+            <input id="fileAnfin" type="file" accept=".xlsx,.xls" class="hidden" />
+            <button id="btnPickAnfin" type="button" class="btn btn-secondary">
+              <span class="material-icons">upload_file</span>
+              <span id="btnPickAnfinText" data-i18n="select_file">Selecionar arquivo</span>
+            </button>
+            <div id="fileAnfinName" class="form-help" style="margin-top: 0.5rem;">
+              <span class="material-icons" style="font-size: 1rem; vertical-align: middle;">description</span>
+              <span data-i18n="no_file_optional">Nenhum arquivo (opcional)</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Ação</label>
+            <div class="form-help">Clique para processar o arquivo selecionado</div>
+            <button id="btnImport" type="button" class="btn btn-primary" disabled>
+              <span class="material-icons">cloud_upload</span>
+              <span id="btnImportText" data-i18n="import_action">Importar</span>
+            </button>
+            <div class="form-help" style="margin-top: 0.5rem;">
+              <span class="material-icons" style="font-size: 1rem; vertical-align: middle;">info</span>
+              <span id="lblSession" data-i18n="session_label">Sessão: <span id="sessionId">-</span></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Preview Section -->
+      <section class="section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h2 class="section-title">
+            <span class="material-icons">table_view</span>
+            <span id="hPreview" data-i18n="preview_adjustments">2) Preview e Ajustes</span>
+          </h2>
+          <button id="btnPreview" class="btn btn-primary">
+            <span class="material-icons">refresh</span>
+            <span id="btnPreviewText" data-i18n="load_preview">Carregar Preview</span>
+          </button>
+        </div>
+        <p class="section-description" data-i18n="preview_description">
+          Visualize e ajuste os dados antes de gerar os invoices. Você pode modificar quantidades, valores unitários e call-offs.
+        </p>
+
+        <div class="table-container">
+          <table class="preview-table" id="tbl">
+            <thead>
+              <tr>
+                <th id="thColab" data-i18n="employee">Colaborador</th>
+                <th id="thServiceDesc" data-i18n="service_description">Descrição Serviço</th>
+                <th id="thUnitPrice" data-i18n="unit_price">Unit Price</th>
+                <th id="thQty" data-i18n="quantity">Qty</th>
+                <th id="thTotalServ" data-i18n="service_total">Total Serviço</th>
+                <th id="thAdditional" data-i18n="additional">Additional</th>
+                <th id="thExpenses" data-i18n="expenses">Expenses</th>
+                <th id="thOverrideQty" data-i18n="override_qty">Override Qty</th>
+                <th id="thOverrideUnit" data-i18n="override_unit">Override Unit</th>
+                <th id="thOverrideAdditional" data-i18n="override_additional">Override Additional</th>
+                <th id="thOverrideExpenses" data-i18n="override_expenses">Override Expenses</th>
+                <th id="thOverrideCallOff" data-i18n="override_calloff">Override Call-Off</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Generate Section -->
+      <section class="section">
+        <h2 class="section-title">
+          <span class="material-icons">receipt_long</span>
+          <span id="hGenerate" data-i18n="generate_invoices">3) Gerar Invoices</span>
+        </h2>
+        <p class="section-description" data-i18n="generate_description">
+          Configure os dados finais e gere os invoices em formato Excel e PDF.
+        </p>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" id="lblInvoiceDate" data-i18n="invoice_date">Invoice Date</label>
+            <input id="invoiceDate" type="date" class="form-input" />
+            <div class="form-help" data-i18n="invoice_date_help">Data que aparecerá nos invoices gerados</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" id="lblInvoiceNo" data-i18n="invoice_number">Invoice No</label>
+            <input id="invoiceNo" type="text" class="form-input" />
+            <div class="form-help" data-i18n="invoice_number_help">Número base para os invoices (será incrementado automaticamente)</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" id="lblCallOff" data-i18n="call_off">Call-Off</label>
+            <input id="callOff" type="text" class="form-input" />
+            <div class="form-help" data-i18n="call_off_help">Referência do call-off para todos os invoices</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ação</label>
+            <button id="btnGenerate" class="btn btn-success">
+              <span class="material-icons">receipt_long</span>
+              <span id="btnGenerateText" data-i18n="generate_action">Gerar Invoices</span>
+            </button>
+            <div class="form-help" data-i18n="generate_help">Clique para gerar todos os invoices com as configurações acima</div>
+          </div>
+        </div>
+
+        <!-- Downloads -->
+        <div style="display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;">
+          <a id="lnkZipPdf" href="#" class="btn btn-warning hidden" download>
+            <span class="material-icons">archive</span>
+            <span id="lnkZipPdfText" data-i18n="download_pdf">Baixar ZIP (PDF)</span>
+          </a>
+          <a id="lnkZipAll" href="#" class="btn btn-secondary hidden" download>
+            <span class="material-icons">inventory_2</span>
+            <span id="lnkZipAllText" data-i18n="download_all">Baixar ZIP (Tudo)</span>
+          </a>
+        </div>
+
+        <!-- Progress -->
+        <div id="progress" class="hidden" style="margin-top: 1rem;">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+          </div>
+          <div style="font-size: 0.9rem; color: var(--text-secondary); white-space: pre-line;" id="progressText"></div>
+        </div>
+
+        <!-- Results -->
+        <div id="result" style="margin-top: 1rem;"></div>
+      </section>
+
+      </main>
+
+    <footer class="footer">
+      <div class="footer-content">
+        <div>
+          <span class="footer-company" id="footerCopy">© <span id="year"></span> ABZ Group. All rights reserved.</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+          <span class="footer-version" id="footerVersion">Invoice Conversion System v2.0.0</span>
+          <div class="footer-links">
+            <a href="https://painelabzgroup.netlify.app" target="_blank" rel="noopener" id="footerPortal">Employee Portal</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="i18n.js?v=9"></script>
+  <script src="app.js?v=9"></script>
+</body>
+</html>
+
+
+

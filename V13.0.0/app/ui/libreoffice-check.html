@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LibreOffice Check - ABZ Invoice System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .status-box {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #6c757d;
+        }
+
+        .status-box.success {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+
+        .status-box.error {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+
+        .status-box.warning {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+        }
+
+        .status-box.info {
+            background: #d1ecf1;
+            border-left-color: #17a2b8;
+        }
+
+        .status-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .status-message {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .status-path {
+            background: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-section {
+            background: #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .info-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .info-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .info-section li {
+            padding: 8px 0;
+            color: #555;
+        }
+
+        .info-section li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 LibreOffice Check</h1>
+        <p class="subtitle">Verificação e instalação do LibreOffice para geração de PDFs</p>
+
+        <div id="statusBox" class="status-box">
+            <div class="status-title">Status: Aguardando verificação...</div>
+            <div class="status-message">Clique em "Verificar LibreOffice" para começar.</div>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Processando...</p>
+        </div>
+
+        <div class="button-group">
+            <button id="checkBtn" class="btn-primary" onclick="checkLibreOffice()">
+                🔍 Verificar LibreOffice
+            </button>
+            <button id="installBtn" class="btn-success" onclick="installLibreOffice()" disabled>
+                📦 Instalar LibreOffice
+            </button>
+            <button class="btn-secondary" onclick="window.location.href='/ui/index.html'">
+                🏠 Voltar ao Início
+            </button>
+        </div>
+
+        <div class="info-section">
+            <h3>ℹ️ Informações</h3>
+            <ul>
+                <li>O LibreOffice é necessário para converter arquivos XLSX em PDF</li>
+                <li>A instalação automática funciona apenas no Windows (via winget ou chocolatey)</li>
+                <li>Se a instalação automática falhar, baixe manualmente em: <a href="https://www.libreoffice.org/download/" target="_blank">libreoffice.org</a></li>
+                <li>Após a instalação manual, reinicie o servidor</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        async function checkLibreOffice() {
+            const statusBox = document.getElementById('statusBox');
+            const loading = document.getElementById('loading');
+            const checkBtn = document.getElementById('checkBtn');
+            const installBtn = document.getElementById('installBtn');
+
+            checkBtn.disabled = true;
+            loading.classList.add('active');
+            statusBox.className = 'status-box info';
+            statusBox.innerHTML = '<div class="status-title">Verificando...</div><div class="status-message">Aguarde enquanto verificamos a instalação do LibreOffice.</div>';
+
+            try {
+                const response = await fetch('/api/system/libreoffice-check');
+                const data = await response.json();
+
+                loading.classList.remove('active');
+
+                if (data.found) {
+                    statusBox.className = 'status-box success';
+                    statusBox.innerHTML = `
+                        <div class="status-title">✅ LibreOffice Encontrado!</div>
+                        <div class="status-message">${data.message}</div>
+                        <div class="status-path">📁 ${data.path}</div>
+                        ${data.auto_install_success ? '<div class="status-message" style="margin-top: 10px; color: #28a745;">✨ Instalado automaticamente com sucesso!</div>' : ''}
+                    `;
+                    installBtn.disabled = true;
+                } else {
+                    statusBox.className = 'status-box error';
+                    statusBox.innerHTML = `
+                        <div class="status-title">❌ LibreOffice Não Encontrado</div>
+                        <div class="status-message">${data.message}</div>
+                        <div class="status-message" style="margin-top: 10px;">Sistema operacional: ${data.system}</div>
+                    `;
+                    installBtn.disabled = false;
+                }
+            } catch (error) {
+                loading.classList.remove('active');
+                statusBox.className = 'status-box error';
+                statusBox.innerHTML = `
+                    <div class="status-title">❌ Erro na Verificação</div>
+                    <div class="status-message">Erro ao verificar LibreOffice: ${error.message}</div>
+                `;
+            } finally {
+                checkBtn.disabled = false;
+            }
+        }
+
+        async function installLibreOffice() {
+            const statusBox = document.getElementById('statusBox');
+            const loading = document.getElementById('loading');
+            const checkBtn = document.getElementById('checkBtn');
+            const installBtn = document.getElementById('installBtn');
+
+            installBtn.disabled = true;
+            checkBtn.disabled = true;
+            loading.classList.add('active');
+            statusBox.className = 'status-box info';
+            statusBox.innerHTML = '<div class="status-title">Instalando...</div><div class="status-message">Aguarde enquanto tentamos instalar o LibreOffice. Isso pode levar alguns minutos...</div>';
+
+            try {
+                const response = await fetch('/api/system/libreoffice-install', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+
+                loading.classList.remove('active');
+
+                if (data.success) {
+                    statusBox.className = 'status-box success';
+                    statusBox.innerHTML = `
+                        <div class="status-title">✅ Instalação Bem-Sucedida!</div>
+                        <div class="status-message">${data.message}</div>
+                        <div class="status-path">📁 ${data.path}</div>
+                    `;
+                    installBtn.disabled = true;
+                } else {
+                    statusBox.className = 'status-box error';
+                    statusBox.innerHTML = `
+                        <div class="status-title">❌ Falha na Instalação</div>
+                        <div class="status-message">${data.message}</div>
+                    `;
+                    installBtn.disabled = false;
+                }
+            } catch (error) {
+                loading.classList.remove('active');
+                statusBox.className = 'status-box error';
+                statusBox.innerHTML = `
+                    <div class="status-title">❌ Erro na Instalação</div>
+                    <div class="status-message">Erro ao instalar LibreOffice: ${error.message}</div>
+                `;
+                installBtn.disabled = false;
+            } finally {
+                checkBtn.disabled = false;
+            }
+        }
+
+        // Auto-check on page load
+        window.addEventListener('load', () => {
+            checkLibreOffice();
+        });
+    </script>
+</body>
+</html>
+
