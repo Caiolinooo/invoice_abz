@@ -1,0 +1,25 @@
+# Segredos
+.env
+.env.*
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Dados locais / artefatos de execução
+/data/
+/out/
+/tmp_out/
+/test_output/
+*.db
+debug_log.txt
+
+# Snapshots/versões antigas locais
+/Versões_Antigas/
+/Versões_Antigas.7z
+/V12.1.1/
+/dev/
+
+# Pessoal
+print_caio_.pdf

@@ -1,0 +1,132 @@
+{
+  "FMS": {
+    "client_id": "FMS",
+    "client_name": "FMS",
+    "company_id": 1,
+    "spreadsheet_format": "abz_charge_rate",
+    "spreadsheet_patterns": [
+      "*FMS*",
+      "*Maximus*"
+    ],
+    "invoice_format": "abz_template",
+    "filename_template": "ABZ Group {invoice_no}-{year} FMS {month} {year} {first_name}",
+    "currency": "GBP",
+    "tax_rate": 0.0,
+    "category": "offshore",
+    "subcategory": null,
+    "parser_config": {},
+    "is_active": true
+  },
+  "OMEGA": {
+    "client_id": "OMEGA",
+    "client_name": "OMEGA",
+    "company_id": 1,
+    "spreadsheet_format": "abz_charge_rate",
+    "spreadsheet_patterns": [
+      "*OMEGA*"
+    ],
+    "invoice_format": "abz_template",
+    "filename_template": "ABZ Group {invoice_no}-{year} OMEGA {month} {year} {first_name}",
+    "currency": "GBP",
+    "tax_rate": 0.0,
+    "category": "offshore",
+    "subcategory": null,
+    "parser_config": {},
+    "is_active": true
+  },
+  "JIFMAR_VOE_VANGUARD": {
+    "client_id": "JIFMAR_VOE_VANGUARD",
+    "client_name": "Jifmar - Voe Vanguard",
+    "company_id": 2,
+    "spreadsheet_format": "jifmar_vessel",
+    "spreadsheet_patterns": [
+      "*Jifmar*"
+    ],
+    "invoice_format": "generated",
+    "filename_template": "ABZ International {invoice_no}-{year} Voe Vanguard {month} {year} {first_name}",
+    "currency": "GBP",
+    "tax_rate": 0.0,
+    "category": "maritime",
+    "subcategory": "Voe Vanguard",
+    "parser_config": {
+      "vessel_name": "Voe Vanguard"
+    },
+    "is_active": true
+  },
+  "JIFMAR_VOE_VIKING": {
+    "client_id": "JIFMAR_VOE_VIKING",
+    "client_name": "Jifmar - Voe Viking",
+    "company_id": 2,
+    "spreadsheet_format": "jifmar_vessel",
+    "spreadsheet_patterns": [
+      "*Jifmar*"
+    ],
+    "invoice_format": "generated",
+    "filename_template": "ABZ International {invoice_no}-{year} Voe Viking {month} {year} {first_name}",
+    "currency": "GBP",
+    "tax_rate": 0.0,
+    "category": "maritime",
+    "subcategory": "Voe Viking",
+    "parser_config": {
+      "vessel_name": "Voe Viking"
+    },
+    "is_active": true
+  },
+  "JIFMAR_FARADAY": {
+    "client_id": "JIFMAR_FARADAY",
+    "client_name": "Jifmar - Faraday",
+    "company_id": 2,
+    "spreadsheet_format": "jifmar_vessel",
+    "spreadsheet_patterns": [
+      "*Jifmar*"
+    ],
+    "invoice_format": "generated",
+    "filename_template": "ABZ International {invoice_no}-{year} Faraday {month} {year} {first_name}",
+    "currency": "GBP",
+    "tax_rate": 0.0,
+    "category": "maritime",
+    "subcategory": "Faraday",
+    "parser_config": {
+      "vessel_name": "Faraday"
+    },
+    "is_active": true
+  },
+  "JIFMAR_PROJECT_5679": {
+    "client_id": "JIFMAR_PROJECT_5679",
+    "client_name": "Jifmar - Project 5679",
+    "company_id": 2,
+    "spreadsheet_format": "jifmar_vessel",
+    "spreadsheet_patterns": [
+      "*Jifmar*"
+    ],
+    "invoice_format": "generated",
+    "filename_template": "ABZ International {invoice_no}-{year} Project 5679 {month} {year} {first_name}",
+    "currency": "GBP",
+    "tax_rate": 0.0,
+    "category": "maritime",
+    "subcategory": "Project 5679",
+    "parser_config": {
+      "vessel_name": "Project 5679"
+    },
+    "is_active": true
+  },
+  "JIFMAR_VOE_EARL": {
+    "client_id": "JIFMAR_VOE_EARL",
+    "client_name": "Jifmar - Voe Earl",
+    "company_id": 2,
+    "spreadsheet_format": "jifmar_vessel",
+    "spreadsheet_patterns": [
+      "*Jifmar*"
+    ],
+    "invoice_format": "generated",
+    "filename_template": "ABZ International {invoice_no}-{year} Voe Earl {month} {year} {first_name}",
+    "currency": "GBP",
+    "tax_rate": 0.0,
+    "category": "maritime",
+    "subcategory": "Voe Earl",
+    "parser_config": {
+      "vessel_name": "Voe Earl"
+    },
+    "is_active": true
+  }
+}
